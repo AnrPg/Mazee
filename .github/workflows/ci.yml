@@ -11,42 +11,49 @@ permissions:
   contents: read
 
 jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.probe.outputs.web }}
+      api: ${{ steps.probe.outputs.api }}
+      android: ${{ steps.probe.outputs.android }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: probe
+        run: |
+          echo "web=$([ -f apps/web/package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "api=$([ -f services/api/mix.exs ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "android=$([ -f apps/android/gradlew ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
   web:
-    if: ${{ exists('apps/web/package.json') }}
+    needs: detect
+    if: ${{ needs.detect.outputs.web == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - run: corepack enable && corepack prepare yarn@4.9.2 --activate
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: yarn
           cache-dependency-path: apps/web/yarn.lock
-
       - name: Install deps
         working-directory: apps/web
         run: yarn install --immutable
-
       - name: Lint
         working-directory: apps/web
         run: yarn lint
-
       - name: Typecheck
         working-directory: apps/web
         run: yarn typecheck
-
       - name: Prettier check
         working-directory: apps/web
         run: yarn prettier --check .
-
       - name: Export web dependencies
         if: ${{ always() }}
         run: |
           mkdir -p artifacts
           (cd apps/web && yarn list --all) > artifacts/web-deps.txt || true
-
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
@@ -55,7 +62,8 @@ jobs:
           if-no-files-found: ignore
 
   api:
-    if: ${{ exists('services/api/mix.exs') }}
+    needs: detect
+    if: ${{ needs.detect.outputs.api == 'true' }}
     runs-on: ubuntu-latest
     services:
       db:
@@ -117,7 +125,8 @@ jobs:
           if-no-files-found: ignore
 
   android:
-    if: ${{ exists('apps/android/gradlew') }}
+    needs: detect
+    if: ${{ needs.detect.outputs.android == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
