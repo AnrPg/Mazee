@@ -37,6 +37,10 @@ jobs:
           node-version: '20.x'
           cache: yarn
           cache-dependency-path: apps/web/yarn.lock
+      - name: Install (focus web)
+        run: |
+          yarn install --immutable
+          yarn workspaces focus apps/web --all
       - name: Install deps
         working-directory: apps/web
         run: yarn install --immutable
