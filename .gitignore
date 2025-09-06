@@ -1,0 +1,102 @@
+
+.cxx/
+# --------
+# Node / Yarn (root + apps/* + packages/*)
+# --------
+node_modules/
+apps/*/node_modules/
+packages/*/node_modules/
+
+# Yarn Berry folders: ignore all, but keep the recommended ones
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+# (ignore cache if it exists locally)
+.yarn/cache/
+
+# Yarn config MUST be committed
+!.yarnrc.yml
+
+# PnP (we use node-modules linker, so just ignore any stray pnp files)
+.pnp.*
+apps/*/.next/
+apps/*/out/
+apps/*/dist/
+packages/*/dist/
+*.log
+
+# lockfiles from other managers
+package-lock.json
+pnpm-lock.yaml
+
+# --------
+# Phoenix / Elixir (services/api)
+# --------
+services/api/_build/
+services/api/deps/
+services/api/assets/node_modules/
+erl_crash.dump
+*.ez
+*.beam
+cover/
+*.coverdata
+
+# Dialyzer artifacts
+services/api/.dialyzer_ignore.exs
+services/api/*.plt
+services/api/.plt
+services/api/.plt.hash
+
+# --------
+# Android / Kotlin (apps/android)
+# --------
+apps/android/.gradle/
+apps/android/.idea/
+apps/android/local.properties
+apps/android/captures/
+apps/android/**/build/
+apps/android/*.iml
+apps/android/*.apk
+apps/android/*.aab
+apps/android/.ktlint/
+apps/android/detekt-baseline.xml
+
+# --------
+# Python (scripts, helpers)
+# --------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.venv/
+.envrc
+
+# --------
+# Docker / Infra
+# --------
+docker-data/
+.env
+.env.local
+.env.*.local
+infra/**/.terraform/
+infra/**/.terragrunt-cache/
+
+# --------
+# Editors / OS
+# --------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --------
+# CI artifacts (optional)
+# --------
+artifacts/

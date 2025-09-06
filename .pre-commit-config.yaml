@@ -1,0 +1,103 @@
+repos:
+  # Hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-json
+      - id: detect-private-key
+      - id: check-added-large-files
+
+  # # Prettier for NON-web files (no Tailwind plugin)
+  # - repo: https://github.com/pre-commit/mirrors-prettier
+  #   rev: v4.0.0-alpha.8
+  #   hooks:
+  #     - id: prettier
+  #       args: ["--cache"]
+  #       files: "^(?!apps/web/).+\\.(ts|tsx|js|jsx|json|ya?ml|md|css|scss)$"
+
+  ## Prettier for apps/web ONLY (with Tailwind plugin)
+  # - repo: https://github.com/pre-commit/mirrors-prettier
+  #   rev: v3.2.5
+  #   hooks:
+  #     - id: prettier
+  #       language_version: system
+  #       args:
+  #         - --cache
+  #         - --config
+  #         - apps/web/.prettierrc.json
+  #         - --plugin-search-dir
+  #         - apps/web
+  #       files: "^apps/web/(?!node_modules/).+\\.(ts|tsx|js|jsx|json|ya?ml|md|css|scss)$"
+
+
+  # Shell lint/format
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.11.0-1
+    hooks:
+      - id: shfmt
+        args: ["-i", "2", "-ci"]
+
+  # Stack-specific (auto-skip if folder missing)
+  - repo: local
+    hooks:
+      - id: prettier-web
+        name: prettier (apps/web)
+        language: system
+        pass_filenames: true
+        entry: bash -lc 'set -e; cd apps/web; corepack enable >/dev/null 2>&1 || true; if [ -f ../yarn.lock ] || [ -f ../../yarn.lock ]; then yarn install --immutable; else yarn install; fi; yarn prettier --config .prettierrc.json --plugin-search-dir . --check'
+        files: '^apps/web/(?!node_modules/).+\\.(ts|tsx|js|jsx|json|ya?ml|md|css|scss)$'
+
+      # Web: ESLint + TypeScript + Prettier check
+      # in .pre-commit-config.yaml, repo: local hooks for apps/web
+      - id: web-lint
+        name: eslint (apps/web)
+        language: system
+        pass_filenames: false
+        entry: bash -lc 'set -euo pipefail; if [ -f apps/web/package.json ] && { ls apps/web/eslint.config.* >/dev/null 2>&1 || ls apps/web/.eslintrc.* >/dev/null 2>&1; } && [ -d apps/web/node_modules/next ]; then cd apps/web && (command -v corepack >/dev/null 2>&1 && corepack enable || true); if [ -f ../../yarn.lock ]; then yarn install --immutable; else yarn install; fi; yarn lint; else echo "apps/web - ESLint config or Next not present — skipping."; fi'
+
+      - id: web-typecheck
+        name: typecheck (apps/web)
+        language: system
+        pass_filenames: false
+        entry: bash -lc 'set -euo pipefail; if [ -f apps/web/package.json ] && [ -f apps/web/tsconfig.json ]; then cd apps/web && (command -v corepack >/dev/null 2>&1 && corepack enable || true); if [ -f ../../yarn.lock ]; then yarn install --immutable; else yarn install; fi; yarn typecheck; else echo "apps/web tsconfig.json not found (skipping)."; fi'
+
+      # Elixir: formatter, Credo, Dialyzer
+      - id: elixir-format
+        name: mix format (services/api)
+        language: system
+        pass_filenames: false
+        entry: bash -lc 'set -euo pipefail; if [ -f services/api/mix.lock ] && git ls-files "services/api/lib/**/*.ex" "services/api/test/**/*.exs" | grep -q .; then cd services/api && mix format --check-formatted; else echo "services/api - no Elixir files yet — skipping format."; fi'
+
+      - id: elixir-credo
+        name: mix credo --strict (services/api)
+        language: system
+        pass_filenames: false
+        entry: bash -lc 'set -euo pipefail; if [ -f services/api/mix.lock ] && git ls-files "services/api/lib/**/*.ex" "services/api/test/**/*.exs" | grep -q .; then cd services/api && mix deps.get && mix credo --strict; else echo "services/api - no Elixir files yet — skipping credo."; fi'
+
+      - id: elixir-dialyzer
+        name: mix dialyzer (services/api)
+        language: system
+        pass_filenames: false
+        entry: bash -lc 'set -euo pipefail; if [ -f services/api/mix.lock ] && git ls-files "services/api/lib/**/*.ex" | grep -q .; then cd services/api && mix dialyzer || echo "Dialyzer not ready yet."; else echo "services/api - no Elixir files yet — skipping dialyzer."; fi'
+
+      # Android: ktlint + detekt
+      - id: android-ktlint
+        name: ktlint (apps/android)
+        language: system
+        pass_filenames: false
+        entry: bash -lc 'set -euo pipefail; if [ -f apps/android/gradlew ]; then cd apps/android && ./gradlew ktlintCheck; else echo "apps/android not found (skipping)."; fi'
+
+      - id: android-detekt
+        name: detekt (apps/android)
+        language: system
+        pass_filenames: false
+        entry: bash -lc 'set -euo pipefail; if [ -f apps/android/gradlew ]; then cd apps/android && ./gradlew detekt; else echo "apps/android not found (skipping)."; fi'

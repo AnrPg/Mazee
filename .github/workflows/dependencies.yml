@@ -1,0 +1,58 @@
+name: Dependencies
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1" # Mondays 03:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  export-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Web
+      - name: Web deps
+        if: ${{ hashFiles('apps/web/package.json') != '' }}
+        run: |
+          corepack enable
+          yarn --version || true
+          yarn install --immutable
+          mkdir -p artifacts
+          (cd apps/web && yarn list --all) > artifacts/web-deps.txt || true
+
+      # Elixir
+      - name: Elixir deps
+        if: ${{ hashFiles('services/api/mix.exs') != '' }}
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "26"
+          elixir-version: "1.16.3"
+      - name: Elixir deps (export)
+        if: ${{ hashFiles('services/api/mix.exs') != '' }}
+        run: |
+          mkdir -p artifacts
+          (cd services/api && mix deps.get && mix deps.tree) > artifacts/elixir-deps.txt || true
+          (cd services/api && mix hex.outdated --all) > artifacts/elixir-outdated.txt || true
+
+      # Android
+      - name: Android deps
+        if: ${{ hashFiles('apps/android/gradlew') != '' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Android deps (export)
+        if: ${{ hashFiles('apps/android/gradlew') != '' }}
+        run: |
+          mkdir -p artifacts
+          (cd apps/android && ./gradlew :app:dependencies) > artifacts/android-deps.txt || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deps-bundle
+          path: artifacts
+          if-no-files-found: ignore

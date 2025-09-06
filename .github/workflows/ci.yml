@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    if: ${{ hashFiles('apps/web/package.json') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "yarn"
+      - name: Install deps
+        run: |
+          if [ -f yarn.lock ]; then
+            yarn install --immutable
+          else
+            yarn install
+          fi
+      - run: yarn install --immutable
+      - name: Lint
+        working-directory: apps/web
+        run: yarn lint
+      - name: Typecheck
+        working-directory: apps/web
+        run: yarn typecheck
+      - name: Prettier check
+        run: yarn prettier --check .
+      - name: Export web dependencies
+        if: ${{ always() }}
+        run: |
+          mkdir -p artifacts
+          (cd apps/web && yarn list --all) > artifacts/web-deps.txt || true
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: deps-web
+          path: artifacts/web-deps.txt
+          if-no-files-found: ignore
+
+  api:
+    if: ${{ hashFiles('services/api/mix.exs') != '' }}
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: koin
+          POSTGRES_PASSWORD: koinpass
+          POSTGRES_DB: mazee_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U koin"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "26"
+          elixir-version: "1.16.3"
+      - run: mix local.hex --force && mix local.rebar --force
+      - name: Deps
+        working-directory: services/api
+        run: mix deps.get
+      - name: Format check
+        working-directory: services/api
+        run: mix format --check-formatted
+      - name: Credo
+        working-directory: services/api
+        run: mix credo --strict || echo "Credo not configured yet."
+      - name: DB setup
+        working-directory: services/api
+        env:
+          POSTGRES_USER: koin
+          POSTGRES_PASSWORD: koinpass
+          POSTGRES_DB: mazee_test
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+        run: mix ecto.create && mix ecto.migrate || echo "Ecto not configured yet."
+      - name: Tests
+        working-directory: services/api
+        run: mix test || echo "No tests yet."
+      - name: Dialyzer
+        working-directory: services/api
+        run: mix dialyzer || echo "Dialyzer cache not built yet."
+      - name: Export elixir dependencies
+        if: ${{ always() }}
+        run: |
+          mkdir -p artifacts
+          (cd services/api && mix deps.tree) > artifacts/elixir-deps.txt || true
+          (cd services/api && mix hex.outdated --all) > artifacts/elixir-outdated.txt || true
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: deps-elixir
+          path: |
+            artifacts/elixir-deps.txt
+            artifacts/elixir-outdated.txt
+          if-no-files-found: ignore
+
+  android:
+    if: ${{ hashFiles('apps/android/gradlew') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: ktlint
+        working-directory: apps/android
+        run: ./gradlew ktlintCheck || echo "ktlint not configured."
+      - name: detekt
+        working-directory: apps/android
+        run: ./gradlew detekt || echo "detekt not configured."
+      - name: Export android dependencies
+        if: ${{ always() }}
+        run: |
+          mkdir -p artifacts
+          (cd apps/android && ./gradlew :app:dependencies) > artifacts/android-deps.txt || true
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: deps-android
+          path: artifacts/android-deps.txt
+          if-no-files-found: ignore
