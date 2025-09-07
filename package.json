@@ -1,0 +1,15 @@
+{
+  "name": "mazee",
+  "private": true,
+  "packageManager": "yarn@4.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "yarn workspaces foreach -v run build",
+    "lint": "yarn workspaces foreach -v run lint",
+    "typecheck": "yarn workspaces foreach -v run typecheck",
+    "format": "yarn workspaces foreach -v run format"
+  }
+}

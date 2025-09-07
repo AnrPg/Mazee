@@ -1,10 +1,22 @@
 {
+  "name": "@mazee/web",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "format": "prettier --check .",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "fmt": "prettier --write .",
+    "fmt:check": "prettier --check ."
+  },
   "dependencies": {
+    "@mazee/ts-sdk": "workspace:*",
     "next": "15.x",
     "react": "18.x || 19.x",
     "react-dom": "18.x || 19.x"
   },
-
   "devDependencies": {
     "@types/node": "^24.3.1",
     "@types/react": "^19.1.12",
@@ -17,11 +29,5 @@
     "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "0.6.9",
     "typescript": "^5.9.2"
-  },
-  "scripts": {
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
-    "typecheck": "tsc --noEmit",
-    "fmt": "prettier --write .",
-    "fmt:check": "prettier --check ."
   }
 }

@@ -31,39 +31,76 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - run: corepack enable && corepack prepare yarn@4.9.2 --activate
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: yarn
-          cache-dependency-path: apps/web/yarn.lock
-      - name: Install (focus web)
+
+      # Build toolchain for native deps (sharp, napi-rs, etc.)
+      - name: System build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 make g++ pkg-config
+
+      # Rust for napi-rs packages (e.g., unrs-resolver)
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # Slightly more robust networking during fetch
+      - name: Yarn network tuning
+        run: |
+          yarn config set httpTimeout 600000
+          yarn config set networkConcurrency 1
+        env:
+          NODE_OPTIONS: --dns-result-order=ipv4first
+
+      # Cache Yarn Berry artifacts
+      - name: Cache Yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      # Install from monorepo root, then focus web
+      - name: Install (root) + focus web
+        env:
+          NODE_OPTIONS: --dns-result-order=ipv4first
         run: |
           yarn install --immutable
           yarn workspaces focus apps/web --all
-      - name: Install deps
-        working-directory: apps/web
-        run: yarn install --immutable
+
       - name: Lint
         working-directory: apps/web
         run: yarn lint
+
       - name: Typecheck
         working-directory: apps/web
         run: yarn typecheck
+
       - name: Prettier check
         working-directory: apps/web
         run: yarn prettier --check .
+
       - name: Export web dependencies
         if: ${{ always() }}
         run: |
           mkdir -p artifacts
           (cd apps/web && yarn list --all) > artifacts/web-deps.txt || true
+
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: deps-web
           path: artifacts/web-deps.txt
           if-no-files-found: ignore
+
+
 
   api:
     needs: detect
