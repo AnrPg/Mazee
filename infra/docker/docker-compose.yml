@@ -1,0 +1,75 @@
+version: "3.9"
+
+name: ${COMPOSE_PROJECT_NAME:-mazee}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-mazee}-postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [mazee_net]
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.11
+    container_name: ${COMPOSE_PROJECT_NAME:-mazee}-meili
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+    command: ["meilisearch", "--http-addr", "0.0.0.0:${MEILI_PORT:-7700}"]
+    ports:
+      - "${MEILI_PORT:-7700}:7700"
+    volumes:
+      - meili_data:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [mazee_net]
+
+  mongo:
+    image: mongodb/mongodb-community-server:7.0-ubi8
+    container_name: ${COMPOSE_PROJECT_NAME:-mazee}-mongo
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # waits for TCP port and simple mongo handshake
+      test: ["CMD", "bash", "-lc", "mongosh --quiet --eval 'db.runCommand({ ping: 1 })' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [mazee_net]
+
+networks:
+  mazee_net:
+    driver: bridge
+
+volumes:
+  pg_data:
+  meili_data:
+  mongo_data:

@@ -1,6 +1,7 @@
 plugins {
   id("com.android.application")
   kotlin("android")
+  id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
   id("com.google.dagger.hilt.android")
   kotlin("kapt")
   id("org.jlleitschuh.gradle.ktlint") version "12.1.1" apply false
@@ -46,7 +47,13 @@ android {
     )
   }
 
-  kotlinOptions { jvmTarget = "17" }
+  kotlin {
+    compilerOptions {
+        // for example:
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+  }
 }
 
 dependencies {
