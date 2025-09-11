@@ -23,7 +23,13 @@ tasks.register<Exec>("buildWeb") {
 
 tasks.register<Exec>("testWeb") {
     workingDir = file(".")
-    commandLine(bash("$yarn test -u || true"))
+    commandLine(bash("""
+      if node -e "process.exit(require('./package.json').scripts?.test?0:1)"; then
+        $yarn run -T test
+      else
+        echo "No test script; skipping"
+      fi
+    """.trimIndent()))
     dependsOn("yarnInstall")
 }
 
