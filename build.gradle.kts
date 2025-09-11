@@ -146,10 +146,34 @@ tasks.register<Exec>("sanityDocker") {
         test -f "$composeFile" || { echo "Missing $composeFile"; exit 1; }
         test -f "$composeEnv"  || { echo "Missing $composeEnv";  exit 1; }
 
-        $composeCmd ps
+        # Start core services
+        $composeCmd up -d postgres meilisearch mongo
 
-        # Remove obsolete 'version:' key noise (compose warns but continues anyway).
-        # Consider deleting 'version:' from your compose file later.
+        wait_healthy() {
+          local svc=${'$'}1
+          local tries=${'$'}{2:-60}   # ~120s with 2s sleep
+          for i in ${'$'}(seq 1 ${'$'}tries); do
+            cid=$($composeCmd ps -q ${'$'}svc 2>/dev/null | head -n1 || true)
+            if [[ -z "${'$'}cid" ]]; then
+              status="starting"
+            else
+              status=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' ${'$'}cid 2>/dev/null || echo starting)
+            fi
+            echo "Waiting for ${'$'}svc … (${ '$' }i/${ '$' }tries) -> ${'$'}status"
+            [[ "${'$'}status" == "healthy" ]] && return 0
+            sleep 2
+          done
+          echo "::error::${'$'}svc not healthy in time"
+          $composeCmd ps ${'$'}svc || true
+          exit 1
+        }
+
+        # Wait for each service to be healthy before probing
+        wait_healthy postgres
+        wait_healthy meilisearch
+        wait_healthy mongo
+
+        $composeCmd ps
 
         # services declared
         srv_list=${'$'}($composeCmd config --services)
@@ -164,7 +188,8 @@ tasks.register<Exec>("sanityDocker") {
         # Postgres health
         if $composeCmd ps postgres >/dev/null 2>&1; then
           echo "Checking Postgres..."
-          $composeCmd exec -T postgres pg_isready -U "${'$'}{POSTGRES_USER:-postgres}" || { echo "::error::pg_isready failed"; exit 1; }
+          $composeCmd exec -T postgres pg_isready -U "${'$'}{POSTGRES_USER:-postgres}" -d "${'$'}{POSTGRES_DB:-postgres}" \
+            || { echo "::error::pg_isready failed"; exit 1; }
         fi
 
         # Meilisearch health (host probing)
@@ -190,7 +215,6 @@ tasks.register<Exec>("sanityDocker") {
 
     commandLine(listOf("/bin/bash", "-lc", script))
 }
-
 
 // ---------- Sanity: Project compiles/tests ----------
 
