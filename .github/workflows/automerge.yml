@@ -12,24 +12,28 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  checks: read    # needed by the “wait for checks” actions
 
 jobs:
   automerge:
     if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions-ecosystem/action-wait-for-check@v1
+      - uses: fountainhead/action-wait-for-check@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: CI
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          timeoutSeconds: 3600
+          checkName: build # the check name to wait for
+          repo: ${{ github.repository }}
+          ref:  ${{ github.sha }}
+          timeoutSeconds: 1200
           intervalSeconds: 15
 
       - name: Merge when labeled "automerge"
-        uses: peter-evans/merge@v4
+        uses: peter-evans/enable-pull-request-automerge@v3
         with:
           commit_message: pull-request-title
-          merge_method: squash
+          token: ${{ secrets.GITHUB_TOKEN }}  # or PAT if your policy requires
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: MERGE # |SQUASH|REBASE (default MERGE)
           required_labels: automerge
           repo_token: ${{ secrets.GITHUB_TOKEN }}
