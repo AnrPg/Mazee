@@ -1,5 +1,6 @@
 import org.gradle.kotlin.dsl.register
-fun bash(cmd: String) = listOf("bash", "-lc", cmd)
+fun bash(cmd: String) = listOf("/bin/bash", "-lc", cmd)
+
 
 val yarn = "corepack enable && corepack use yarn@4.9.2 && yarn"
 

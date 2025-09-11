@@ -75,7 +75,7 @@ repos:
         name: mix format (services/api)
         language: system
         pass_filenames: false
-        entry: bash -lc 'set -euo pipefail; if [ -f services/api/mix.lock ] && git ls-files "services/api/lib/**/*.ex" "services/api/test/**/*.exs" | grep -q .; then cd services/api && mix format --check-formatted; else echo "services/api - no Elixir files yet — skipping format."; fi'
+        entry: bash -lc 'set -euo pipefail; if [ -f services/api/mix.lock ] && git ls-files "services/api/lib/**/*.ex" "services/api/test/**/*.exs" | grep -q .; then cd services/api && mix format; else echo "services/api - no Elixir files yet — skipping format."; fi'
 
       - id: elixir-credo
         name: mix credo --strict (services/api)

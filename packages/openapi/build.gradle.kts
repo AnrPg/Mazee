@@ -2,9 +2,9 @@ import org.gradle.kotlin.dsl.register
 
 fun bash(cmd: String) = listOf("bash", "-lc", cmd)
 
-val SPEC = "packages/openapi/openapi.yaml"
-val TS_OUT = "packages/ts-sdk"
-val KT_OUT = "packages/kotlin-sdk"
+val SPEC = "openapi.yaml"      // path is now relative to packages/openapi
+val TS_OUT = "../ts-sdk"       // write to sibling packages/ts-sdk
+val KT_OUT = "../kotlin-sdk"   // write to sibling packages/kotlin-sdk
 
 tasks.register<Exec>("genTsClient") {
     // Typescript: typescript-fetch as agreed
