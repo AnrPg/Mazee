@@ -1,0 +1,15 @@
+notifications:
+  get:
+    summary: List notifications
+    operationId: listNotifications
+    tags: [Notifications]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - $ref: "../components/parameters.yaml#/limit"
+      - $ref: "../components/parameters.yaml#/after"
+    responses:
+      "200":
+        description: Page
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/notifications/NotificationPage.yaml" }

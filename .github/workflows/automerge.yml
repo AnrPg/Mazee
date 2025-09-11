@@ -16,17 +16,19 @@ permissions:
 
 jobs:
   automerge:
-    if: ${{ github.event.pull_request.draft == false }}
+    if: ${{ github.event_name == 'pull_request'
+            && github.event.pull_request.draft == false
+            && contains(join(github.event.pull_request.labels.*.name, ','), 'automerge') }}
     runs-on: ubuntu-latest
     steps:
       - uses: fountainhead/action-wait-for-check@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: build # the check name to wait for
-          repo: ${{ github.repository }}
-          ref:  ${{ github.sha }}
+          checkName: build
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           timeoutSeconds: 1200
           intervalSeconds: 15
+
 
       - name: Merge when labeled "automerge"
         uses: peter-evans/enable-pull-request-automerge@v3

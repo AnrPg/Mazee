@@ -1,0 +1,8 @@
+type: object
+properties:
+  id: { $ref: "../primitives/ID.yaml" }
+  kind: { type: string, enum: [friend_request, message, post_like, appointment] }
+  actor: { $ref: "../profiles/Profile.yaml" }
+  data: { type: object, additionalProperties: true }
+  createdAt: { $ref: "../primitives/ISODateTime.yaml" }
+  read: { type: boolean }

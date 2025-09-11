@@ -1,0 +1,88 @@
+posts:
+  get:
+    summary: Feed (personalized)
+    operationId: listFeed
+    tags: [Posts]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - $ref: "../components/parameters.yaml#/limit"
+      - $ref: "../components/parameters.yaml#/after"
+    responses:
+      "200":
+        description: Feed page
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/posts/PostPage.yaml" }
+
+users__userId__posts:
+  post:
+    summary: Create post
+    operationId: createPost
+    tags: [Posts]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - $ref: "../components/parameters.yaml#/userId"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: "../components/schemas/posts/PostCreate.yaml" }
+    responses:
+      "201":
+        description: Created
+        headers:
+          Location:
+            schema: { type: string }
+            description: URL of new resource
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/posts/Post.yaml" }
+  get:
+    summary: Get all posts from user
+    operationId: getUserPosts
+    tags: [Posts]
+    parameters:
+      - $ref: "../components/parameters.yaml#/userId"
+    security: [{ bearerAuth: [] }]
+    responses:
+      '200':
+        description: User's Posts page
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas/posts/Post.yaml'
+                next:
+                  type: string
+                  nullable: true
+      "404": { $ref: "../components/responses.yaml#/NotFound" }
+
+posts__postId:
+  get:
+    summary: Get post
+    operationId: getPost
+    tags: [Posts]
+    parameters:
+      - $ref: "../components/parameters.yaml#/postId"
+    security: [{ bearerAuth: [] }]
+    responses:
+      "200":
+        description: Post
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/posts/Post.yaml" }
+      "404": { $ref: "../components/responses.yaml#/NotFound" }
+  delete:
+    summary: Delete post
+    operationId: deletePost
+    tags: [Posts]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - $ref: "../components/parameters.yaml#/postId"
+    responses:
+      "204": { description: Deleted }
+      "403": { $ref: "../components/responses.yaml#/Forbidden" }

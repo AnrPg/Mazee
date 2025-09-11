@@ -1,0 +1,18 @@
+synaxarion:
+  get:
+    summary: Day’s saints per calendar type
+    operationId: listSynaxarion
+    tags: [Synaxarion]
+    parameters:
+      - in: query
+        name: date
+        schema: { type: string, format: date }
+      - in: query
+        name: calendar
+        schema: { type: string, enum: [new, old], default: new }
+    responses:
+      "200":
+        description: Entries
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/synaxarion/SynaxarionEntryPage.yaml" }

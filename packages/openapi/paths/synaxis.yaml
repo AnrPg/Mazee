@@ -1,0 +1,73 @@
+synaxis:
+  get:
+    summary: List my Synaxis (connections)
+    operationId: listConnections
+    tags: [Synaxis]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - $ref: "../components/parameters.yaml#/limit"
+      - $ref: "../components/parameters.yaml#/after"
+    responses:
+      "200":
+        description: Connections
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/synaxis/ConnectionPage.yaml" }
+
+synaxis__requests:
+  get:
+    summary: Incoming/outgoing requests
+    operationId: listFriendRequests
+    tags: [Synaxis]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - in: query
+        name: direction
+        schema: { type: string, enum: [incoming, outgoing], default: incoming }
+    responses:
+      "200":
+        description: Requests
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/synaxis/FriendRequestPage.yaml" }
+  post:
+    summary: Send connection request
+    operationId: sendFriendRequest
+    tags: [Synaxis]
+    security: [{ bearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [toUserId]
+            properties:
+              toUserId: { $ref: "../components/schemas/primitives/ID.yaml" }
+    responses:
+      "201": { description: Created }
+      "409": { $ref: "../components/responses.yaml#/Conflict" }
+
+synaxis__requests__requestId:
+  post:
+    summary: Accept/decline request
+    operationId: actOnFriendRequest
+    tags: [Synaxis]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - in: path
+        name: requestId
+        required: true
+        schema: { $ref: "../components/schemas/primitives/ID.yaml" }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [action]
+            properties:
+              action: { type: string, enum: [accept, decline] }
+    responses:
+      "200": { description: Updated }
+      "404": { $ref: "../components/responses.yaml#/NotFound" }

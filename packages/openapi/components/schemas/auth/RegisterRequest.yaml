@@ -1,0 +1,6 @@
+type: object
+required: [email, password, handle]
+properties:
+  email: { type: string, format: email }
+  password: { type: string, minLength: 8 }
+  handle: { type: string, pattern: "^[a-z0-9_\\.]{3,30}$" }

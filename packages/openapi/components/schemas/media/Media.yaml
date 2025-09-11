@@ -1,0 +1,7 @@
+type: object
+properties:
+  id: { $ref: "../primitives/ID.yaml" }
+  url: { type: string, format: uri }
+  contentType: { type: string }
+  width: { type: integer, nullable: true }
+  height: { type: integer, nullable: true }

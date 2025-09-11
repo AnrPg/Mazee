@@ -1,0 +1,33 @@
+userId:
+  in: path
+  name: userId
+  required: true
+  schema: { $ref: './schemas/primitives/ID.yaml' }
+
+postId:
+  in: path
+  name: postId
+  required: true
+  schema: { $ref: './schemas/primitives/ID.yaml' }
+
+chatId:
+  in: path
+  name: chatId
+  required: true
+  schema: { $ref: './schemas/primitives/ID.yaml' }
+
+limit:
+  in: query
+  name: limit
+  schema:
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 20
+
+after:
+  in: query
+  name: after
+  schema:
+    type: string
+    description: Cursor for pagination

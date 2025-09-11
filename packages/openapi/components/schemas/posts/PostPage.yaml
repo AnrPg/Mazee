@@ -1,0 +1,6 @@
+type: object
+properties:
+  data:
+    type: array
+    items: { $ref: "../posts/Post.yaml" }
+  next: { type: string, nullable: true }

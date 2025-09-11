@@ -1,0 +1,15 @@
+type: object
+properties:
+  id: { $ref: "../primitives/ID.yaml" }
+  author: { $ref: "../profiles/Profile.yaml" }
+  kind: { type: string, enum: [text, image, video] }
+  text: { type: string, nullable: true }
+  media:
+    type: array
+    items: { $ref: "../media/Media.yaml" }
+  stats:
+    type: object
+    properties:
+      likes: { type: integer }
+      comments: { type: integer }
+  createdAt: { $ref: "../primitives/ISODateTime.yaml" }

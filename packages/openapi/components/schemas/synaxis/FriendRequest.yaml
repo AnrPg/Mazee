@@ -1,0 +1,7 @@
+type: object
+properties:
+  id: { $ref: "../primitives/ID.yaml" }
+  from: { $ref: "../profiles/Profile.yaml" }
+  to: { $ref: "../profiles/Profile.yaml" }
+  status: { type: string, enum: [pending, accepted, declined] }
+  createdAt: { $ref: "../primitives/ISODateTime.yaml" }

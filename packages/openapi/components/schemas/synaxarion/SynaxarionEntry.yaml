@@ -1,0 +1,7 @@
+type: object
+properties:
+  id: { $ref: "../primitives/ID.yaml" }
+  date: { type: string, format: date }
+  saint: { type: string }
+  feastType: { type: string }
+  readingRefs: { type: array, items: { type: string } }

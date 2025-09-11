@@ -1,0 +1,22 @@
+media__uploads:
+  post:
+    summary: Begin media upload (signed URL pattern)
+    operationId: createUpload
+    tags: [Media]
+    security: [{ bearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [contentType, bytes]
+            properties:
+              contentType: { type: string, example: image/jpeg }
+              bytes: { type: integer, minimum: 1 }
+    responses:
+      "201":
+        description: Signed URL issued
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/media/UploadTicket.yaml" }

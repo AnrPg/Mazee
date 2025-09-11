@@ -1,0 +1,24 @@
+services__text:
+  get:
+    summary: Service text for given typikon/context
+    operationId: getServiceText
+    tags: [Services]
+    parameters:
+      - in: query
+        name: typikon
+        schema: { type: string, example: 'Byzantine-Std' }
+      - in: query
+        name: saint
+        schema: { type: string, example: 'St George' }
+      - in: query
+        name: period
+        schema: { type: string, example: 'Lent' }
+      - in: query
+        name: calendar
+        schema: { type: string, enum: [new, old], default: new }
+    responses:
+      "200":
+        description: Structured service document
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/services/ServiceDocument.yaml' }

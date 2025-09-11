@@ -1,0 +1,16 @@
+Unauthorized:
+  description: Unauthorized
+  content:
+    application/json: { schema: { $ref: "../components/schemas/common/Error.yaml" } }
+Forbidden:
+  description: Forbidden
+  content:
+    application/json: { schema: { $ref: "../components/schemas/common/Error.yaml" } }
+NotFound:
+  description: Not found
+  content:
+    application/json: { schema: { $ref: "../components/schemas/common/Error.yaml" } }
+Conflict:
+  description: Conflict
+  content:
+    application/json: { schema: { $ref: "../components/schemas/common/Error.yaml" } }

@@ -1,0 +1,62 @@
+auth_register:
+  post:
+    summary: Register with email/password
+    operationId: register
+    tags: [Auth]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: "../components/schemas/auth/RegisterRequest.yaml" }
+    responses:
+      "201":
+        description: Created
+        headers:
+          Set-Cookie:
+            description: Session cookie (optional if using cookies)
+            schema: { type: string }
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/auth/AuthResponse.yaml" }
+      "409": { $ref: "../components/responses.yaml#/Conflict" }
+
+auth_login:
+  post:
+    summary: Login with email/password
+    operationId: login
+    tags: [Auth]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: "../components/schemas/auth/LoginRequest.yaml" }
+    responses:
+      "200":
+        description: Authenticated
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/auth/AuthResponse.yaml" }
+      "401": { $ref: "../components/responses.yaml#/Unauthorized" }
+
+auth_refresh:
+  post:
+    summary: Refresh access token
+    operationId: refreshToken
+    tags: [Auth]
+    security: [{ refreshToken: [] }]
+    responses:
+      "200":
+        description: New access token
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/auth/TokenPair.yaml" }
+      "401": { $ref: "../components/responses.yaml#/Unauthorized" }
+
+auth_logout:
+  post:
+    summary: Invalidate session
+    operationId: logout
+    tags: [Auth]
+    security: [{ bearerAuth: [] }]
+    responses:
+      "204": { description: No Content }

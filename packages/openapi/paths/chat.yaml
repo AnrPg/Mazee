@@ -1,0 +1,66 @@
+chats:
+  get:
+    summary: List my chats
+    operationId: listChats
+    tags: [Chat]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - $ref: "../components/parameters.yaml#/limit"
+      - $ref: "../components/parameters.yaml#/after"
+    responses:
+      "200":
+        description: Chat page
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/chat/ChatPage.yaml" }
+  post:
+    summary: Start chat (1:1 or group)
+    operationId: createChat
+    tags: [Chat]
+    security: [{ bearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: "../components/schemas/chat/ChatCreate.yaml" }
+    responses:
+      "201":
+        description: Created
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/chat/Chat.yaml" }
+
+chats__chatId__messages:
+  get:
+    summary: Messages in a chat (page)
+    operationId: listMessages
+    tags: [Chat]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - $ref: "../components/parameters.yaml#/chatId"
+      - $ref: "../components/parameters.yaml#/limit"
+      - $ref: "../components/parameters.yaml#/after"
+    responses:
+      "200":
+        description: Messages
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/chat/MessagePage.yaml" }
+  post:
+    summary: Send a message
+    operationId: sendMessage
+    tags: [Chat]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - $ref: "../components/parameters.yaml#/chatId"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: "../components/schemas/chat/MessageCreate.yaml" }
+    responses:
+      "201":
+        description: Sent
+        content:
+          application/json:
+            schema: { $ref: "../components/schemas/chat/Message.yaml" }

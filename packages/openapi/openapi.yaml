@@ -1,37 +1,513 @@
-openapi: 3.0.3
+openapi: 3.1.3
+
 info:
   title: Mazee API
-  version: 0.0.1
+  version: 1.0.0
+  description: >
+    Contract for Mazee — a social + Orthodox utilities platform.
+    Generated clients: TypeScript (web) & Kotlin (Android). Backend: Phoenix.
+
 servers:
-  - url: http://localhost:4000
+  - url: https://api.mazee.app/v1
+    description: Production
+  - url: https://staging.api.mazee.app/v1
+    description: Staging
+  - url: http://localhost:4000/v1
+    description: Local dev
+
+tags:
+  - name: Auth
+  - name: Profiles
+  - name: Synaxis
+  - name: Posts
+  - name: Media
+  - name: Chat
+  - name: Priests & Confession
+  - name: Synaxarion
+  - name: Services
+  - name: Search
+  - name: Notifications
+  - name: Misc
+
 paths:
-  /health:
-    get:
-      summary: Health check
-      operationId: healthCheck
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ok
+  # ---------------- Sanity Checks and Info ----------------
   /version:
-    get:
-      summary: API version
-      operationId: getVersion
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  version:
-                    type: string
-                    example: 0.0.1
+    $ref: './paths/misc.yaml#/version'
+  /health:
+    $ref: './paths/misc.yaml#/health'
+
+  #---------- Auth ----------
+
+  /auth/register:
+    $ref: './paths/auth.yaml#/auth_register'
+  /auth/login:
+    $ref: './paths/auth.yaml#/auth_login'
+  /auth/refresh:
+    $ref: './paths/auth.yaml#/auth_refresh'
+  /auth/logout:
+    $ref: './paths/auth.yaml#/auth_logout'
+
+  # ---------- Profiles ----------
+  /me:
+    $ref: './paths/profiles.yaml#/me'
+  /profiles/{userId}:
+    $ref: './paths/profiles.yaml#/profiles__userId'
+
+  # ---------- Synaxis (friends/edges) ----------
+  /synaxis:
+    $ref: './paths/synaxis.yaml#/synaxis'
+  /synaxis/requests:
+    $ref: './paths/synaxis.yaml#/synaxis__requests'
+  /synaxis/requests/{requestId}:
+    $ref: './paths/synaxis.yaml#/synaxis__requests__requestId'
+
+  # ---------- Posts & Media ----------
+  /posts:
+    $ref: './paths/posts.yaml#/posts'
+  /users/{userId}/posts:
+    $ref: './paths/posts.yaml#/users__userId__posts'
+  /posts/{postId}:
+    $ref: './paths/posts.yaml#/posts__postId'
+  /media/uploads:
+    $ref: './paths/media.yaml#/media__uploads'
+
+  # ---------- Chat (live messaging) ----------
+  # /chats:
+  #   $ref: './paths/chat.yaml#/chats'
+  # /chats/{chatId}/messages:
+  #   $ref: './paths/chat.yaml#/chats__chatId__messages'
+
+  # ---------- Priests, schedules, confession ----------
+  # /priests:
+  #   $ref: './paths/clergy.yaml#/priests'
+  # /priests/{priestId}/schedule:
+  #   $ref: './paths/clergy.yaml#/priests__priestId__schedule'
+  # /priests/{priestId}/appointments:
+  #   $ref: './paths/clergy.yaml#/priests__priestId__appointments'
+
+  # # Congregations
+  # /congregations:
+  #   $ref: './paths/clergy.yaml#/congregations'
+  # /congregations/{id}:
+  #   $ref: './paths/clergy.yaml#/congregations__id'
+
+  # # Practitioners (polymorphic)
+  # /practitioners:
+  #   $ref: './paths/clergy.yaml#/practitioners'
+  # /practitioners/{id}:
+  #   $ref: './paths/clergy.yaml#/practitioners__id'
+  # /practitioners/{id}/schedule:
+  #   $ref: './paths/clergy.yaml#/practitioners__id__schedule'
+  # /practitioners/{id}/appointments:
+  #   $ref: './paths/clergy.yaml#/practitioners__id__appointments'
+
+  # ---------- Synaxarion & Services ----------
+  /synaxarion:
+    $ref: './paths/synaxarion.yaml#/synaxarion'
+
+  # Services
+  /services/text:
+    $ref: './paths/services.yaml#/services__text'
+
+  # ---------- Search ----------
+  /search:
+    $ref: './paths/search.yaml#/search'
+
+  # ---------- Notifications ----------
+  /notifications:
+    $ref: './paths/notifications.yaml#/notifications'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './components/securitySchemes.yaml#/bearerAuth'
+    refreshToken:
+      $ref: './components/securitySchemes.yaml#/refreshToken'
+  parameters:
+    userId:
+      $ref: './components/parameters.yaml#/userId'
+    postId:
+      $ref: './components/parameters.yaml#/postId'
+    chatId:
+      $ref: './components/parameters.yaml#/chatId'
+    limit:
+      $ref: './components/parameters.yaml#/limit'
+    after:
+      $ref: './components/parameters.yaml#/after'
+  responses:
+    NotFound:
+      $ref: './components/responses.yaml#/NotFound'
+    Unauthorized:
+      $ref: './components/responses.yaml#/Unauthorized'
+    Forbidden:
+      $ref: './components/responses.yaml#/Forbidden'
+    Conflict:
+      $ref: './components/responses.yaml#/Conflict'
+    # Add other responses as needed, referencing each one individually
+
+security:
+  - bearerAuth: []
+
+
+
+# openapi: 3.1.3
+
+# info:
+#   title: Mazee API
+#   version: 1.0.0
+#   description: >
+#     Contract for Mazee — a social + Orthodox utilities platform.
+#     Generated clients: TypeScript (web) & Kotlin (Android). Backend: Phoenix.
+
+# servers:
+#   - url: https://api.mazee.app/v1
+#     description: Production
+#   - url: https://staging.api.mazee.app/v1
+#     description: Staging
+#   - url: http://localhost:4000/v1
+#     description: Local dev
+# tags:
+#   - name: Auth
+#   - name: Profiles
+#   - name: Synaxis
+#   - name: Posts
+#   - name: Media
+#   - name: Chat
+#   - name: Priests & Confession
+#   - name: Synaxarion
+#   - name: Services
+#   - name: Search
+#   - name: Notifications
+# paths:
+
+#   # ---------------- Sanity Checks and Info ----------------
+#   # ---------- Auth ----------
+#   # ---------- Profiles ----------
+#   # ---------- Synaxis (friends/edges) ----------
+#   # ---------- Posts & Media ----------
+#   # ---------- Chat (live messaging) ----------
+#   # ---------- Synaxarion ----------
+#   # ---------- Search ----------
+#   # ---------- Notifications ----------
+#   # ---------- Services ----------------
+
+#   # ---------- Priests, schedules, confession ----------
+#   /priests:
+#     get:
+#       summary: Browse priests (certified)
+#       operationId: listPriests
+#       tags: ["Priests & Confession"]
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: query
+#           name: near
+#           description: Optional location filter (lat,lng)
+#           schema: { type: string, example: "37.98,23.72" }
+#       responses:
+#         "200":
+#           description: Priests
+#           content:
+#             application/json:
+#               schema: { $ref: "../components/schemas/PriestPage" }
+
+#   /priests/{priestId}/schedule:
+#     get:
+#       summary: Confession schedule for a priest
+#       operationId: getPriestSchedule
+#       tags: ["Priests & Confession"]
+#       parameters:
+#         - in: path
+#           name: priestId
+#           required: true
+#           schema: { $ref: "../components/schemas/ID" }
+#       responses:
+#         "200":
+#           description: Slots
+#           content:
+#             application/json:
+#               schema: { $ref: "../components/schemas/Schedule" }
+
+#   /priests/{priestId}/appointments:
+#     post:
+#       summary: Book a confession slot
+#       operationId: bookConfession
+#       tags: ["Priests & Confession"]
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: path
+#           name: priestId
+#           required: true
+#           schema: { $ref: "../components/schemas/ID" }
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema: { $ref: "../components/schemas/AppointmentCreate" }
+#       responses:
+#         "201": { description: Booked }
+
+# # Congregations
+#   /congregations:
+#     get:
+#       summary: List congregations
+#       operationId: listCongregations
+#       tags: [Priests & Confession]
+#       parameters:
+#         - in: query
+#           name: kind
+#           schema: { type: string, enum: [church, parish, monastery, group, choir, school] }
+#         - in: query
+#           name: near
+#           description: "lat,lng"
+#           schema: { type: string, example: "37.98,23.72" }
+#       responses:
+#         "200":
+#           description: OK
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   data:
+#                     type: array
+#                     items: { $ref: '../components/schemas/Congregation' }
+#                   next: { type: string, nullable: true }
+
+#   /congregations/{id}:
+#     get:
+#       summary: Get congregation
+#       operationId: getCongregation
+#       tags: [Priests & Confession]
+#       parameters:
+#         - in: path
+#           name: id
+#           required: true
+#           schema: { $ref: '../components/schemas/ID' }
+#       responses:
+#         "200":
+#           description: OK
+#           content:
+#             application/json:
+#               schema: { $ref: '../components/schemas/Congregation' }
+#         "404": { $ref: '../components/responses/NotFound' }
+
+#   # Practitioners (polymorphic)
+#   /practitioners:
+#     get:
+#       summary: Browse practitioners (priests, masters, etc.)
+#       operationId: listPractitioners
+#       tags: [Priests & Confession]
+#       parameters:
+#         - in: query
+#           name: role
+#           schema:
+#             type: string
+#             enum: [priest, iconographer, woodmaster, marblemaster, bic]
+#         - in: query
+#           name: congregationId
+#           schema: { $ref: '../components/schemas/ID' }
+#         - in: query
+#           name: near
+#           schema: { type: string, example: "37.98,23.72" }
+#       responses:
+#         "200":
+#           description: OK
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   data:
+#                     type: array
+#                     items: { $ref: '../components/schemas/Practitioner' }
+#                   next: { type: string, nullable: true }
+
+#   /practitioners/{id}:
+#     get:
+#       summary: Get practitioner (Priest or Master)
+#       operationId: getPractitioner
+#       tags: [Priests & Confession]
+#       parameters:
+#         - in: path
+#           name: id
+#           required: true
+#           schema: { $ref: '../components/schemas/ID' }
+#       responses:
+#         "200":
+#           description: OK
+#           content:
+#             application/json:
+#               schema: { $ref: '../components/schemas/Practitioner' }
+#         "404": { $ref: '../components/responses/NotFound' }
+
+#   # Schedules & appointments (generic)
+#   /practitioners/{id}/schedule:
+#     get:
+#       summary: Get provider schedule
+#       operationId: getSchedule
+#       tags: [Priests & Confession]
+#       parameters:
+#         - in: path
+#           name: id
+#           required: true
+#           schema: { $ref: '../components/schemas/ID' }
+#       responses:
+#         "200":
+#           description: OK
+#           content:
+#             application/json:
+#               schema: { $ref: '../components/schemas/Schedule' }
+
+#   /practitioners/{id}/appointments:
+#     post:
+#       summary: Book an appointment
+#       operationId: bookAppointment
+#       tags: [Priests & Confession]
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: path
+#           name: id
+#           required: true
+#           schema: { $ref: '../components/schemas/ID' }
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               type: object
+#               required: [slotStart]
+#               properties:
+#                 slotStart: { $ref: '../components/schemas/ISODateTime' }
+#                 note: { type: string, maxLength: 500 }
+#       responses:
+#         "201":
+#           description: Created
+#           content:
+#             application/json:
+#               schema: { $ref: '../components/schemas/Appointment' }
+
+# components:
+#   parameters:
+#     userId:
+#       in: path
+#       name: userId
+#       required: true
+#       schema: { $ref: "../components/schemas/ID" }
+#     postId:
+#       in: path
+#       name: postId
+#       required: true
+#       schema: { $ref: "../components/schemas/ID" }
+#     chatId:
+#       in: path
+#       name: chatId
+#       required: true
+#       schema: { $ref: "../components/schemas/ID" }
+#     limit:
+#       in: query
+#       name: limit
+#       schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+#     after:
+#       in: query
+#       name: after
+#       schema: { type: string, description: Cursor for pagination }
+
+#   # schemas:
+#     # --- Auth ---
+#     # --- Profiles ---
+#     # --- Synaxis ---
+#     # --- Posts & Media ---
+#     # --- Synaxarion & Services ---
+#     # --- Search & Notifications ---
+
+#     # --- Chat ---
+#     # ChatCreate:
+#     #   type: object
+#     #   required: [participantIds]
+#     #   properties:
+#     #     participantIds:
+#     #       type: array
+#     #       items: { $ref: "../components/schemas/ID" }
+#     #     title: { type: string, nullable: true }
+#     # Chat:
+#     #   type: object
+#     #   properties:
+#     #     id: { $ref: "../components/schemas/ID" }
+#     #     title: { type: string, nullable: true }
+#     #     participants:
+#     #       type: array
+#     #       items: { $ref: "../components/schemas/Profile" }
+#     #     lastMessage: { $ref: "../components/schemas/Message" }
+#     # ChatPage:
+#     #   type: object
+#     #   properties:
+#     #     data:
+#     #       type: array
+#     #       items: { $ref: "../components/schemas/Chat" }
+#     #     next: { type: string, nullable: true }
+
+#     # MessageCreate:
+#     #   type: object
+#     #   required: [content]
+#     #   properties:
+#     #     content: { type: string, maxLength: 8000 }
+#     #     mediaUploadIds:
+#     #       type: array
+#     #       items: { $ref: "../components/schemas/ID" }
+#     # Message:
+#     #   type: object
+#     #   properties:
+#     #     id: { $ref: "../components/schemas/ID" }
+#     #     sender: { $ref: "../components/schemas/Profile" }
+#     #     content: { type: string }
+#     #     media:
+#     #       type: array
+#     #       items: { $ref: "../components/schemas/Media" }
+#     #     sentAt: { $ref: "../components/schemas/ISODateTime" }
+#     # MessagePage:
+#     #   type: object
+#     #   properties:
+#     #     data:
+#     #       type: array
+#     #       items: { $ref: "../components/schemas/Message" }
+#     #     next: { type: string, nullable: true }
+
+#     # # --- Priests & Confession ---
+#     # Priest:
+#     #   type: object
+#     #   properties:
+#     #     id: { $ref: "../components/schemas/ID" }
+#     #     name: { type: string }
+#     #     parish: { type: string }
+#     #     verified: { type: boolean }
+#     #     specialties: { type: array, items: { type: string } }
+#     #     location: { type: string }
+#     # PriestPage:
+#     #   type: object
+#     #   properties:
+#     #     data:
+#     #       type: array
+#     #       items: { $ref: "../components/schemas/Priest" }
+#     #     next: { type: string, nullable: true }
+
+#     # Schedule:
+#     #   type: object
+#     #   properties:
+#     #     priestId: { $ref: "../components/schemas/ID" }
+#     #     slots:
+#     #       type: array
+#     #       items:
+#     #         type: object
+#     #         properties:
+#     #           start: { $ref: "../components/schemas/ISODateTime" }
+#     #           end: { $ref: "../components/schemas/ISODateTime" }
+#     #           available: { type: boolean }
+#     # AppointmentCreate:
+#     #   type: object
+#     #   required: [slotStart]
+#     #   properties:
+#     #     slotStart: { $ref: "../components/schemas/ISODateTime" }
+#     #     note: { type: string, maxLength: 500 }
+
+# security:
+#   - bearerAuth: []

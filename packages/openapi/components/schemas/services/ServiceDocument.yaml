@@ -1,0 +1,14 @@
+type: object
+description: Structured service with role-bearing lines
+properties:
+  id: { $ref: "../primitives/ID.yaml" }
+  title: { type: string }
+  typikon: { type: string }
+  parts:
+    type: array
+    items:
+      type: object
+      properties:
+        role: { type: string, enum: [Priest, Deacon, Reader, Choir, People] }
+        text: { type: string }
+        language: { type: string, example: "el" }

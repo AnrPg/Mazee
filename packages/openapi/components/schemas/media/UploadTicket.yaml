@@ -1,0 +1,5 @@
+type: object
+properties:
+  uploadId: { $ref: "../primitives/ID.yaml" }
+  putUrl: { type: string, format: uri }
+  finalUrl: { type: string, format: uri }

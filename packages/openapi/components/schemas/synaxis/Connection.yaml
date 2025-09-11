@@ -1,0 +1,4 @@
+type: object
+properties:
+  user: { $ref: "../profiles/Profile.yaml" }
+  since: { $ref: "../primitives/ISODateTime.yaml" }
