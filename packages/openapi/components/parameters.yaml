@@ -2,19 +2,19 @@ userId:
   in: path
   name: userId
   required: true
-  schema: { $ref: './schemas/primitives/ID.yaml' }
+  schema: { $ref: "./schemas/primitive/ID.yaml" }
 
 postId:
   in: path
   name: postId
   required: true
-  schema: { $ref: './schemas/primitives/ID.yaml' }
+  schema: { $ref: "./schemas/primitive/ID.yaml" }
 
 chatId:
   in: path
   name: chatId
   required: true
-  schema: { $ref: './schemas/primitives/ID.yaml' }
+  schema: { $ref: "./schemas/primitive/ID.yaml" }
 
 limit:
   in: query

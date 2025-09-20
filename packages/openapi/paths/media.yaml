@@ -1,4 +1,4 @@
-media__uploads:
+media_uploads:
   post:
     summary: Begin media upload (signed URL pattern)
     operationId: createUpload
@@ -20,3 +20,55 @@ media__uploads:
         content:
           application/json:
             schema: { $ref: "../components/schemas/media/UploadTicket.yaml" }
+
+media_mediaId:
+  get:
+    summary: Get media metadata
+    tags: [Media]
+    parameters: [ { in: path, name: mediaId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses:
+      "200": { description: Media, content: { application/json: { schema: { $ref: "../components/schemas/media/Media.yaml" } } } }
+      "404": { $ref: "../components/responses.yaml#/NotFound" }
+  patch:
+    summary: Update media metadata
+    tags: [Media]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: mediaId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              alt: { type: string, maxLength: 300 }
+              caption: { type: string, maxLength: 500 }
+    responses:
+      "200": { description: Updated, content: { application/json: { schema: { $ref: "../components/schemas/media/Media.yaml" } } } }
+  delete:
+    summary: Delete media (if unused or author)
+    tags: [Media]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: mediaId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses: { "204": { description: Deleted } }
+
+media_uploads_uploadId:
+  get:
+    summary: Get upload ticket
+    tags: [Media]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: uploadId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses: { "200": { description: Ticket, content: { application/json: { schema: { $ref: "../components/schemas/media/UploadTicket.yaml" } } } } }
+  delete:
+    summary: Cancel/expire upload
+    tags: [Media]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: uploadId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses: { "204": { description: Canceled } }
+
+media_uploads_uploadId_complete:
+  post:
+    summary: Mark upload complete (server-side verify)
+    tags: [Media]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: uploadId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses: { "200": { description: Finalized, content: { application/json: { schema: { $ref: "../components/schemas/media/Media.yaml" } } } } }

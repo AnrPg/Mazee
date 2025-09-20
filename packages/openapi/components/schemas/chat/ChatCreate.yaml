@@ -1,0 +1,7 @@
+type: object
+required: [participantIds]
+properties:
+  participantIds:
+    type: array
+    items: { $ref: "../primitive/ID.yaml" }
+  title: { type: string, nullable: true }

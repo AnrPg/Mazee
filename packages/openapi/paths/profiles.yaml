@@ -1,17 +1,4 @@
-me:
-  get:
-    summary: Get current user profile
-    operationId: getMe
-    tags: [Profiles]
-    security: [{ bearerAuth: [] }]
-    responses:
-      "200":
-        description: Current profile
-        content:
-          application/json:
-            schema: { $ref: "../components/schemas/profiles/Profile.yaml" }
-
-profiles__userId:
+profiles_userId:
   get:
     summary: Get profile by userId
     operationId: getProfile
@@ -24,7 +11,7 @@ profiles__userId:
         description: Profile
         content:
           application/json:
-            schema: { $ref: "../components/schemas/profiles/Profile.yaml" }
+            schema: { $ref: "../components/schemas/profile/Profile.yaml" }
       "404": { $ref: "../components/responses.yaml#/NotFound" }
   patch:
     summary: Update own profile
@@ -37,11 +24,39 @@ profiles__userId:
       required: true
       content:
         application/json:
-          schema: { $ref: "../components/schemas/profiles/ProfileUpdate.yaml" }
+          schema: { $ref: "../components/schemas/profile/ProfileUpdate.yaml" }
     responses:
       "200":
         description: Updated
         content:
           application/json:
-            schema: { $ref: "../components/schemas/profiles/Profile.yaml" }
+            schema: { $ref: "../components/schemas/profile/Profile.yaml" }
       "403": { $ref: "../components/responses.yaml#/Forbidden" }
+
+profiles_userId_block:
+  post:
+    summary: Block user
+    tags: [Profiles]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { $ref: "../components/parameters.yaml#/userId" } ]
+    responses: { "204": { description: Blocked } }
+  delete:
+    summary: Unblock user
+    tags: [Profiles]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { $ref: "../components/parameters.yaml#/userId" } ]
+    responses: { "204": { description: Unblocked } }
+
+profiles_userId_mute:
+  post:
+    summary: Mute posts/notifications from user
+    tags: [Profiles]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { $ref: "../components/parameters.yaml#/userId" } ]
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: { durationHours: { type: integer, minimum: 1 } }
+    responses: { "204": { description: Muted } }

@@ -1,4 +1,4 @@
 type: object
 properties:
-  user: { $ref: "../profiles/Profile.yaml" }
+  user: { $ref: "../profile/Profile.yaml" }
   tokens: { $ref: "./TokenPair.yaml" }

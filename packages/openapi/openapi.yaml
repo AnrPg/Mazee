@@ -1,3 +1,6 @@
+
+# TODO: add Idempotency-Key for API v2
+
 openapi: 3.1.3
 
 info:
@@ -16,8 +19,10 @@ servers:
     description: Local dev
 
 tags:
+  - name: Misc
   - name: Auth
   - name: Profiles
+  - name: Users
   - name: Synaxis
   - name: Posts
   - name: Media
@@ -27,127 +32,209 @@ tags:
   - name: Services
   - name: Search
   - name: Notifications
-  - name: Misc
 
 paths:
   # ---------------- Sanity Checks and Info ----------------
   /version:
-    $ref: './paths/misc.yaml#/version'
+    $ref: "./paths/misc.yaml#/version"
   /health:
-    $ref: './paths/misc.yaml#/health'
+    $ref: "./paths/misc.yaml#/health"
 
   #---------- Auth ----------
-
   /auth/register:
-    $ref: './paths/auth.yaml#/auth_register'
+    $ref: "./paths/auth.yaml#/auth_register"
   /auth/login:
-    $ref: './paths/auth.yaml#/auth_login'
+    $ref: "./paths/auth.yaml#/auth_login"
   /auth/refresh:
-    $ref: './paths/auth.yaml#/auth_refresh'
+    $ref: "./paths/auth.yaml#/auth_refresh"
   /auth/logout:
-    $ref: './paths/auth.yaml#/auth_logout'
+    $ref: "./paths/auth.yaml#/auth_logout"
+  /auth/verify-email:
+    $ref: "./paths/auth.yaml#/auth_verify-email"
+  /auth/request-password-reset:
+    $ref: "./paths/auth.yaml#/auth_request-password-reset"
+  /auth/reset-password:
+    $ref: "./paths/auth.yaml#/auth_reset-password"
+  /auth/sessions:
+    $ref: "./paths/auth.yaml#/auth_sessions"
+  /auth/sessions/{sessionId}:
+    $ref: "./paths/auth.yaml#/auth_sessions_sessionId"
+  /auth/push-tokens:
+    $ref: "./paths/auth.yaml#/auth_push-tokens"
+  /handles/check:
+    $ref: "./paths/auth.yaml#/handles_check"
 
   # ---------- Profiles ----------
-  /me:
-    $ref: './paths/profiles.yaml#/me'
   /profiles/{userId}:
-    $ref: './paths/profiles.yaml#/profiles__userId'
+    $ref: "./paths/profiles.yaml#/profiles_userId"
+  /profiles/{userId}/block:
+    $ref: "./paths/profiles.yaml#/profiles_userId_block"
+  /profiles/{userId}/mute:
+    $ref: "./paths/profiles.yaml#/profiles_userId_mute"
+
+  # ---------- Users (secure admin + self-service) ----------
+  /users:
+    $ref: "./paths/users.yaml#/users"
+  /users/{userId}:
+    $ref: "./paths/users.yaml#/users_userId"
+  /me:
+    $ref: "./paths/users.yaml#/me"
+  /me/settings:
+    $ref: "./paths/users.yaml#/me_settings"
+  /me/delete:
+    $ref: "./paths/users.yaml#/me_delete"
 
   # ---------- Synaxis (friends/edges) ----------
   /synaxis:
-    $ref: './paths/synaxis.yaml#/synaxis'
+    $ref: "./paths/synaxis.yaml#/synaxis"
+  /synaxis/{userId}:
+    $ref: "./paths/synaxis.yaml#/synaxis_userId"
   /synaxis/requests:
-    $ref: './paths/synaxis.yaml#/synaxis__requests'
+    $ref: "./paths/synaxis.yaml#/synaxis_requests"
   /synaxis/requests/{requestId}:
-    $ref: './paths/synaxis.yaml#/synaxis__requests__requestId'
+    $ref: "./paths/synaxis.yaml#/synaxis_requests_requestId"
 
-  # ---------- Posts & Media ----------
+  /synaxis/suggestions:
+    $ref: "./paths/synaxis.yaml#/synaxis_suggestions"
+
+  # ---------- Posts ----------
   /posts:
-    $ref: './paths/posts.yaml#/posts'
+    $ref: "./paths/posts.yaml#/posts"
   /users/{userId}/posts:
-    $ref: './paths/posts.yaml#/users__userId__posts'
+    $ref: "./paths/posts.yaml#/users_userId_posts"
   /posts/{postId}:
-    $ref: './paths/posts.yaml#/posts__postId'
+    $ref: "./paths/posts.yaml#/posts_postId"
+  /posts/{postId}/like:
+    $ref: "./paths/posts.yaml#/posts_postId_like"
+  /posts/{postId}/comments:
+    $ref: "./paths/posts.yaml#/posts_postId_comments"
+  /posts/{postId}/comments/{commentId}:
+    $ref: "./paths/posts.yaml#/posts_postId_comments_commentId"
+  /reports:
+    $ref: "./paths/posts.yaml#/reports"
+
+  # ---------- Media ----------
   /media/uploads:
-    $ref: './paths/media.yaml#/media__uploads'
+    $ref: "./paths/media.yaml#/media_uploads"
+  /media/{mediaId}:
+    $ref: "./paths/media.yaml#/media_mediaId"
+  /media/uploads/{uploadId}:
+    $ref: "./paths/media.yaml#/media_uploads_uploadId"
+  /media/uploads/{uploadId}/complete:
+    $ref: "./paths/media.yaml#/media_uploads_uploadId_complete"
 
   # ---------- Chat (live messaging) ----------
-  # /chats:
-  #   $ref: './paths/chat.yaml#/chats'
-  # /chats/{chatId}/messages:
-  #   $ref: './paths/chat.yaml#/chats__chatId__messages'
+  /chats:
+    $ref: "./paths/chat.yaml#/chats"
+  /chats/{chatId}/messages:
+    $ref: "./paths/chat.yaml#/chats_chatId_messages"
+  /chats/{chatId}:
+    $ref: "./paths/chat.yaml#/chats_chatId"
+  /chats/{chatId}/members:
+    $ref: "./paths/chat.yaml#/chats_chatId_members"
+  /chats/{chatId}/members/{userId}:
+    $ref: "./paths/chat.yaml#/chats_chatId_members_userId"
+  /chats/{chatId}/messages/{messageId}:
+    $ref: "./paths/chat.yaml#/chats_chatId_messages_messageId"
+  /chats/{chatId}/typing:
+    $ref: "./paths/chat.yaml#/chats_chatId_typing"
+  /chats/{chatId}/read:
+    $ref: "./paths/chat.yaml#/chats_chatId_read"
 
   # ---------- Priests, schedules, confession ----------
   # /priests:
-  #   $ref: './paths/clergy.yaml#/priests'
+  #   $ref: "./paths/clergy.yaml#/priests"
   # /priests/{priestId}/schedule:
-  #   $ref: './paths/clergy.yaml#/priests__priestId__schedule'
+  #   $ref: "./paths/clergy.yaml#/priests_priestId_schedule"
   # /priests/{priestId}/appointments:
-  #   $ref: './paths/clergy.yaml#/priests__priestId__appointments'
+  #   $ref: "./paths/clergy.yaml#/priests_priestId_appointments"
 
   # # Congregations
   # /congregations:
-  #   $ref: './paths/clergy.yaml#/congregations'
+  #   $ref: "./paths/clergy.yaml#/congregations"
   # /congregations/{id}:
-  #   $ref: './paths/clergy.yaml#/congregations__id'
+  #   $ref: "./paths/clergy.yaml#/congregations_id"
 
   # # Practitioners (polymorphic)
   # /practitioners:
-  #   $ref: './paths/clergy.yaml#/practitioners'
+  #   $ref: "./paths/clergy.yaml#/practitioners"
   # /practitioners/{id}:
-  #   $ref: './paths/clergy.yaml#/practitioners__id'
+  #   $ref: "./paths/clergy.yaml#/practitioners_id"
   # /practitioners/{id}/schedule:
-  #   $ref: './paths/clergy.yaml#/practitioners__id__schedule'
+  #   $ref: "./paths/clergy.yaml#/practitioners_id_schedule"
   # /practitioners/{id}/appointments:
-  #   $ref: './paths/clergy.yaml#/practitioners__id__appointments'
+  #   $ref: "./paths/clergy.yaml#/practitioners_id_appointments"
 
-  # ---------- Synaxarion & Services ----------
+  # ---------- Synaxarion ----------
   /synaxarion:
-    $ref: './paths/synaxarion.yaml#/synaxarion'
+    $ref: "./paths/synaxarion.yaml#/synaxarion"
+  /synaxarion/{entryId}:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_entryId"
+  /synaxarion/{entryId}/life:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_entryId_life"
 
-  # Services
+  # ---------- Services ----------
   /services/text:
-    $ref: './paths/services.yaml#/services__text'
+    $ref: "./paths/services.yaml#/services_text"
+  /services/plan:
+    $ref: "./paths/services.yaml#/services_plan"
+  /services/chant/identify:
+    $ref: "./paths/services.yaml#/services_chant_identify"
+  # TODO: in v2
+  # /services/reminders:
+  #   $ref: "./paths/services.yaml#/services_reminders"
 
   # ---------- Search ----------
   /search:
-    $ref: './paths/search.yaml#/search'
+    $ref: "./paths/search.yaml#/search"
+  /search/suggestions:
+    $ref: "./paths/search.yaml#/search_suggestions"
 
   # ---------- Notifications ----------
   /notifications:
-    $ref: './paths/notifications.yaml#/notifications'
+    $ref: "./paths/notifications.yaml#/notifications"
+  /notifications/{notificationId}:
+    $ref: "./paths/notifications.yaml#/notifications_notificationId"
+  /notifications/mark-all-read:
+    $ref: "./paths/notifications.yaml#/notifications_mark-all-read"
 
 components:
   securitySchemes:
     bearerAuth:
-      $ref: './components/securitySchemes.yaml#/bearerAuth'
+      $ref: "./components/securitySchemes.yaml#/bearerAuth"
     refreshToken:
-      $ref: './components/securitySchemes.yaml#/refreshToken'
+      $ref: "./components/securitySchemes.yaml#/refreshToken"
+    cookieAuth:
+      $ref: "./components/securitySchemes.yaml#/cookieAuth"
+    apiKeyAuth:
+      $ref: "./components/securitySchemes.yaml#/apiKeyAuth"
   parameters:
     userId:
-      $ref: './components/parameters.yaml#/userId'
+      $ref: "./components/parameters.yaml#/userId"
     postId:
-      $ref: './components/parameters.yaml#/postId'
+      $ref: "./components/parameters.yaml#/postId"
     chatId:
-      $ref: './components/parameters.yaml#/chatId'
+      $ref: "./components/parameters.yaml#/chatId"
     limit:
-      $ref: './components/parameters.yaml#/limit'
+      $ref: "./components/parameters.yaml#/limit"
     after:
-      $ref: './components/parameters.yaml#/after'
+      $ref: "./components/parameters.yaml#/after"
   responses:
     NotFound:
-      $ref: './components/responses.yaml#/NotFound'
+      $ref: "./components/responses.yaml#/NotFound"
     Unauthorized:
-      $ref: './components/responses.yaml#/Unauthorized'
+      $ref: "./components/responses.yaml#/Unauthorized"
     Forbidden:
-      $ref: './components/responses.yaml#/Forbidden'
+      $ref: "./components/responses.yaml#/Forbidden"
     Conflict:
-      $ref: './components/responses.yaml#/Conflict'
+      $ref: "./components/responses.yaml#/Conflict"
     # Add other responses as needed, referencing each one individually
 
 security:
   - bearerAuth: []
-
+  - refreshToken: []
+  - cookieAuth: []
+  - apiKeyAuth: []
 
 
 # openapi: 3.1.3
@@ -270,7 +357,7 @@ security:
 #                 properties:
 #                   data:
 #                     type: array
-#                     items: { $ref: '../components/schemas/Congregation' }
+#                     items: { $ref: "../components/schemas/Congregation" }
 #                   next: { type: string, nullable: true }
 
 #   /congregations/{id}:
@@ -282,14 +369,14 @@ security:
 #         - in: path
 #           name: id
 #           required: true
-#           schema: { $ref: '../components/schemas/ID' }
+#           schema: { $ref: "../components/schemas/ID" }
 #       responses:
 #         "200":
 #           description: OK
 #           content:
 #             application/json:
-#               schema: { $ref: '../components/schemas/Congregation' }
-#         "404": { $ref: '../components/responses/NotFound' }
+#               schema: { $ref: "../components/schemas/Congregation" }
+#         "404": { $ref: "../components/responses.yaml#/NotFound" }
 
 #   # Practitioners (polymorphic)
 #   /practitioners:
@@ -305,7 +392,7 @@ security:
 #             enum: [priest, iconographer, woodmaster, marblemaster, bic]
 #         - in: query
 #           name: congregationId
-#           schema: { $ref: '../components/schemas/ID' }
+#           schema: { $ref: "../components/schemas/ID" }
 #         - in: query
 #           name: near
 #           schema: { type: string, example: "37.98,23.72" }
@@ -319,7 +406,7 @@ security:
 #                 properties:
 #                   data:
 #                     type: array
-#                     items: { $ref: '../components/schemas/Practitioner' }
+#                     items: { $ref: "../components/schemas/Practitioner" }
 #                   next: { type: string, nullable: true }
 
 #   /practitioners/{id}:
@@ -331,14 +418,14 @@ security:
 #         - in: path
 #           name: id
 #           required: true
-#           schema: { $ref: '../components/schemas/ID' }
+#           schema: { $ref: "../components/schemas/ID" }
 #       responses:
 #         "200":
 #           description: OK
 #           content:
 #             application/json:
-#               schema: { $ref: '../components/schemas/Practitioner' }
-#         "404": { $ref: '../components/responses/NotFound' }
+#               schema: { $ref: "../components/schemas/Practitioner" }
+#         "404": { $ref: "../components/responses.yaml#/NotFound" }
 
 #   # Schedules & appointments (generic)
 #   /practitioners/{id}/schedule:
@@ -350,13 +437,13 @@ security:
 #         - in: path
 #           name: id
 #           required: true
-#           schema: { $ref: '../components/schemas/ID' }
+#           schema: { $ref: "../components/schemas/ID" }
 #       responses:
 #         "200":
 #           description: OK
 #           content:
 #             application/json:
-#               schema: { $ref: '../components/schemas/Schedule' }
+#               schema: { $ref: "../components/schemas/Schedule" }
 
 #   /practitioners/{id}/appointments:
 #     post:
@@ -368,7 +455,7 @@ security:
 #         - in: path
 #           name: id
 #           required: true
-#           schema: { $ref: '../components/schemas/ID' }
+#           schema: { $ref: "../components/schemas/ID" }
 #       requestBody:
 #         required: true
 #         content:
@@ -377,14 +464,14 @@ security:
 #               type: object
 #               required: [slotStart]
 #               properties:
-#                 slotStart: { $ref: '../components/schemas/ISODateTime' }
+#                 slotStart: { $ref: "../components/schemas/ISODateTime" }
 #                 note: { type: string, maxLength: 500 }
 #       responses:
 #         "201":
 #           description: Created
 #           content:
 #             application/json:
-#               schema: { $ref: '../components/schemas/Appointment' }
+#               schema: { $ref: "../components/schemas/Appointment" }
 
 # components:
 #   parameters:
@@ -436,14 +523,14 @@ security:
 #     #     title: { type: string, nullable: true }
 #     #     participants:
 #     #       type: array
-#     #       items: { $ref: "../components/schemas/Profile" }
+#     #       items: { $ref: "../components/schemas/profile/Profile.yaml" }
 #     #     lastMessage: { $ref: "../components/schemas/Message" }
 #     # ChatPage:
 #     #   type: object
 #     #   properties:
 #     #     data:
 #     #       type: array
-#     #       items: { $ref: "../components/schemas/Chat" }
+#     #       items: { $ref: "../components/schemas/chat/Chat.yaml" }
 #     #     next: { type: string, nullable: true }
 
 #     # MessageCreate:
@@ -458,7 +545,7 @@ security:
 #     #   type: object
 #     #   properties:
 #     #     id: { $ref: "../components/schemas/ID" }
-#     #     sender: { $ref: "../components/schemas/Profile" }
+#     #     sender: { $ref: "../components/schemas/profile/Profile.yaml" }
 #     #     content: { type: string }
 #     #     media:
 #     #       type: array

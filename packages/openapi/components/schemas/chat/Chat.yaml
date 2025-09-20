@@ -1,0 +1,9 @@
+type: object
+properties:
+  id: { $ref: "../primitive/ID.yaml" }
+  title: { type: string, nullable: true }
+  participants:
+    type: array
+    items: { $ref: "../profile/Profile.yaml" }
+  lastMessage: { $ref: "./Message.yaml" }
+  createdAt: { $ref: "../primitive/ISODateTime.yaml" }

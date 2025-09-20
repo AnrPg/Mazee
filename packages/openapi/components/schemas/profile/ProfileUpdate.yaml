@@ -3,4 +3,4 @@ properties:
   displayName: { type: string }
   bio: { type: string, maxLength: 500 }
   location: { type: string }
-  avatarUploadId: { $ref: "../primitives/ID.yaml" }
+  avatarUploadId: { $ref: "../primitive/ID.yaml" }

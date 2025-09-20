@@ -12,4 +12,39 @@ notifications:
         description: Page
         content:
           application/json:
-            schema: { $ref: "../components/schemas/notifications/NotificationPage.yaml" }
+            schema: { $ref: "../components/schemas/notification/NotificationPage.yaml" }
+
+notifications_notificationId:
+  get:
+    summary: Get notification
+    tags: [Notifications]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: notificationId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses:
+      "200": { description: Notification, content: { application/json: { schema: { $ref: "../components/schemas/notification/Notification.yaml" } } } }
+  delete:
+    summary: Delete notification
+    tags: [Notifications]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: notificationId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses: { "204": { description: Deleted } }
+  patch:
+    summary: Mark single notification read/unread
+    tags: [Notifications]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: notificationId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: { read: { type: boolean } }
+    responses: { "200": { description: Updated, content: { application/json: { schema: { $ref: "../components/schemas/notification/Notification.yaml" } } } } }
+
+notifications_mark-all-read:
+  post:
+    summary: Mark all as read
+    tags: [Notifications]
+    security: [ { bearerAuth: [] } ]
+    responses: { "204": { description: Updated } }

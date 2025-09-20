@@ -1,0 +1,7 @@
+allOf:
+  - $ref: "../profile/Profile.yaml"
+  - type: object
+    properties:
+      email: { type: string, format: email }
+      roles: { type: array, items: { type: string, enum: [user, admin, priest] } }
+      status: { type: string, enum: [active, suspended, deleted], default: active }

@@ -1,0 +1,12 @@
+type: object
+properties:
+  privacy:
+    type: object
+    properties:
+      profileVisibility: { type: string, enum: [public, connections, private], default: public }
+      messageWhoCanDM: { type: string, enum: [anyone, connections, none], default: connections }
+  notifications:
+    type: object
+    properties:
+      pushEnabled: { type: boolean, default: true }
+      emailDigest: { type: string, enum: [off, daily, weekly], default: weekly }

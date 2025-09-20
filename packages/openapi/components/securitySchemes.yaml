@@ -6,3 +6,11 @@ refreshToken:
   type: http
   scheme: bearer
   bearerFormat: JWT-Refresh
+cookieAuth:
+  type: apiKey
+  in: cookie
+  name: _mazee_session
+apiKeyAuth:
+  type: apiKey
+  in: header
+  name: X-API-Key

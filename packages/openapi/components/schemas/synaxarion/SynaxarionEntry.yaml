@@ -1,6 +1,6 @@
 type: object
 properties:
-  id: { $ref: "../primitives/ID.yaml" }
+  id: { $ref: "../primitive/ID.yaml" }
   date: { type: string, format: date }
   saint: { type: string }
   feastType: { type: string }

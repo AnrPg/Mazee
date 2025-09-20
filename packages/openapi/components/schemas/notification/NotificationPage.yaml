@@ -2,5 +2,5 @@ type: object
 properties:
   data:
     type: array
-    items: { $ref: "../notifications/Notification.yaml" }
+    items: { $ref: "../notification/Notification.yaml" }
   next: { type: string, nullable: true }

@@ -1,3 +1,5 @@
+# TODO: Eventing (optional): emit synaxis.connection.created so chat/bootstrap services can listen.
+
 synaxis:
   get:
     summary: List my Synaxis (connections)
@@ -14,7 +16,41 @@ synaxis:
           application/json:
             schema: { $ref: "../components/schemas/synaxis/ConnectionPage.yaml" }
 
-synaxis__requests:
+synaxis_userId:
+  get:
+    summary: Relationship status with user
+    tags: [Synaxis]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/userId" ]
+    responses:
+      "200":
+        description: Status
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [none, requested_by_me, requested_by_them, connected, blocked] }
+  put:
+    summary: Force connect (admin/merge accounts)
+    tags: [Synaxis]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/userId" ]
+    responses:
+      "204": { description: Connected }
+      "403": { $ref: "../components/responses.yaml#/Forbidden" }
+  delete:
+    summary: Remove connection
+    tags: [Synaxis]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { $ref: "../components/parameters.yaml#/userId" } ]
+    responses: { "204": { description: Removed } }
+
+synaxis_userId_block:
+
+synaxis_userId_unblock:
+
+synaxis_requests:
   get:
     summary: Incoming/outgoing requests
     operationId: listFriendRequests
@@ -43,12 +79,12 @@ synaxis__requests:
             type: object
             required: [toUserId]
             properties:
-              toUserId: { $ref: "../components/schemas/primitives/ID.yaml" }
+              toUserId: { $ref: "../components/schemas/primitive/ID.yaml" }
     responses:
       "201": { description: Created }
       "409": { $ref: "../components/responses.yaml#/Conflict" }
 
-synaxis__requests__requestId:
+synaxis_requests_requestId:
   post:
     summary: Accept/decline request
     operationId: actOnFriendRequest
@@ -58,7 +94,7 @@ synaxis__requests__requestId:
       - in: path
         name: requestId
         required: true
-        schema: { $ref: "../components/schemas/primitives/ID.yaml" }
+        schema: { $ref: "../components/schemas/primitive/ID.yaml" }
     requestBody:
       required: true
       content:
@@ -69,5 +105,49 @@ synaxis__requests__requestId:
             properties:
               action: { type: string, enum: [accept, decline] }
     responses:
-      "200": { description: Updated }
+      "200":
+        description: Updated; connection may be created on accept
+        headers:
+          Location:
+            description: URL of the connection resource if created
+            schema: { type: string }
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request: { $ref: "../components/schemas/synaxis/FriendRequest.yaml" }
+                connection:
+                  allOf:
+                    - $ref: '../components/schemas/synaxis/Connection.yaml'
+                  nullable: true  # null when declined
       "404": { $ref: "../components/responses.yaml#/NotFound" }
+      "409":
+        description: Already connected or request no longer valid
+      "410":
+        description: Request expired or withdrawn
+  delete:
+    summary: Cancel pending request
+    tags: [Synaxis]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: requestId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses: { "204": { description: Canceled } }
+
+synaxis_suggestions:
+  get:
+    summary: People you may know
+    tags: [Synaxis]
+    security: [ { bearerAuth: [] } ]
+    parameters:
+      - $ref: "../components/parameters.yaml#/limit"
+      - $ref: "../components/parameters.yaml#/after"
+    responses:
+      "200":
+        description: Suggestions
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data: { type: array, items: { $ref: "../components/schemas/profile/Profile.yaml" } }
+                next: { type: string, nullable: true }

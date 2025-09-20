@@ -30,7 +30,7 @@ chats:
           application/json:
             schema: { $ref: "../components/schemas/chat/Chat.yaml" }
 
-chats__chatId__messages:
+chats_chatId_messages:
   get:
     summary: Messages in a chat (page)
     operationId: listMessages
@@ -64,3 +64,102 @@ chats__chatId__messages:
         content:
           application/json:
             schema: { $ref: "../components/schemas/chat/Message.yaml" }
+
+chats_chatId:
+  get:
+    summary: Get chat
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId" ]
+    responses: { "200": { description: Chat, content: { application/json: { schema: { $ref: "../components/schemas/chat/Chat.yaml" } } } }, "404": { $ref: "../components/responses.yaml#/NotFound" } }
+  patch:
+    summary: Update chat (title)
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId" ]
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: { title: { type: string, maxLength: 120 } }
+    responses:
+      "200": { description: Updated, content: { application/json: { schema: { $ref: "../components/schemas/chat/Chat.yaml" } } } }
+  put:
+    summary: Replace chat (members & title)
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId" ]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title: { type: string, nullable: true }
+              memberIds: { type: array, items: { $ref: "../components/schemas/primitive/ID.yaml" }, minItems: 1 }
+    responses:
+      "200": { description: Replaced, content: { application/json: { schema: { $ref: "../components/schemas/chat/Chat.yaml" } } } }
+  delete:
+    summary: Leave or delete chat
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId" ]
+    responses: { "204": { description: Left/Deleted } }
+
+chats_chatId_members:
+  get:
+    summary: List members
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId" ]
+    responses: { "200": { description: Members, content: { application/json: { schema: { type: array, items: { $ref: "../components/schemas/profile/Profile.yaml" } } } } } }
+  post:
+    summary: Add members
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId" ]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { type: object, required: [memberIds], properties: { memberIds: { type: array, items: { $ref: "../components/schemas/primitive/ID.yaml" } } } }
+    responses: { "204": { description: Added } }
+
+chats_chatId_members_userId:
+  delete:
+    summary: Remove member
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId", $ref: "../components/parameters.yaml#/userId" ]
+    responses: { "204": { description: Removed } }
+
+chats_chatId_messages_messageId:
+  delete:
+    summary: Delete own message
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters:
+      - $ref: "../components/parameters.yaml#/chatId"
+      - { in: path, name: messageId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } }
+    responses: { "204": { description: Deleted } }
+
+chats_chatId_typing:
+  post:
+    summary: Typing indicator (best-effort)
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId" ]
+    responses: { "204": { description: Ack } }
+
+chats_chatId_read:
+  post:
+    summary: Mark messages up to cursor as read
+    tags: [Chat]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ $ref: "../components/parameters.yaml#/chatId" ]
+    requestBody:
+      required: true
+      content: { application/json: { schema: { type: object, required: [messageId], properties: { messageId: { $ref: "../components/schemas/primitive/ID.yaml" } } } } }
+    responses: { "204": { description: Updated } }

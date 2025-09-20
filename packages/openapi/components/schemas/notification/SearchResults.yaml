@@ -1,0 +1,5 @@
+type: object
+properties:
+  posts: { type: array, items: { $ref: "../post/Post.yaml" } }
+  profiles: { type: array, items: { $ref: "../profile/Profile.yaml" } }
+  services: { type: array, items: { $ref: "../service/ServiceDocument.yaml" } }

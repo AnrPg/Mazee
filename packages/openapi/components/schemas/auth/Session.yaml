@@ -1,0 +1,8 @@
+type: object
+properties:
+  id: { $ref: "../primitive/ID.yaml" }
+  userAgent: { type: string }
+  ip: { type: string }
+  createdAt: { $ref: "../primitive/ISODateTime.yaml" }
+  lastSeenAt: { $ref: "../primitive/ISODateTime.yaml" }
+  current: { type: boolean }

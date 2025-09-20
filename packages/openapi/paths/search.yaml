@@ -18,4 +18,50 @@ search:
         description: Results
         content:
           application/json:
-            schema: { $ref: "../components/schemas/notifications/SearchResults.yaml" }
+            schema: { $ref: "../components/schemas/notification/SearchResults.yaml" }
+  post:
+    summary: Advanced search with filters/facets
+    tags: [Search]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              q: { type: string }
+              scope: { type: array, items: { type: string, enum: [posts, profiles, services] } }
+              filters: { type: object, additionalProperties: true }
+              sort: { type: string, enum: [relevance, recent, popular], default: relevance }
+              topK: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    responses:
+      "200": { description: Results, content: { application/json: { schema: { $ref: "../components/schemas/notification/SearchResults.yaml" } } } }
+
+search_suggestions:
+  get:
+    summary: Typeahead for people, posts, services
+    tags: [Search]
+    parameters:
+      - in: query
+        name: q
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: topK
+        schema:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 20
+    responses:
+      "200":
+        description: Suggestions
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profiles: { type: array, items: { $ref: "../components/schemas/profile/Profile.yaml" } }
+                posts:    { type: array, items: { $ref: "../components/schemas/post/Post.yaml" } }
+                services: { type: array, items: { $ref: "../components/schemas/service/ServiceDocument.yaml" } }

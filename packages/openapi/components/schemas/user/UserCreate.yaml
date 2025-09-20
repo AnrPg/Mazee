@@ -1,0 +1,8 @@
+type: object
+required: [email, password, handle, displayName]
+properties:
+  email: { type: string, format: email }
+  password: { type: string, minLength: 8 }
+  handle: { type: string, pattern: "^[a-z0-9_.]{3,30}$" }
+  displayName: { type: string }
+  roles: { type: array, items: { type: string, enum: [user, admin, priest] }, default: ["user"] }

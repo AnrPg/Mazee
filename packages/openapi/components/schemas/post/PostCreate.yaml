@@ -5,5 +5,5 @@ properties:
   text: { type: string, maxLength: 4000 }
   mediaUploadIds:
     type: array
-    items: { $ref: "../primitives/ID.yaml" }
+    items: { $ref: "../primitive/ID.yaml" }
   audience: { type: string, enum: [public, synaxia, private], default: public }

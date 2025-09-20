@@ -1,0 +1,12 @@
+type: object
+properties:
+  id: { $ref: "../primitive/ID.yaml" }
+  chatId: { $ref: "../primitive/ID.yaml" }
+  sender: { $ref: "../profile/Profile.yaml" }
+  text: { type: string, nullable: true }
+  media:
+    type: array
+    items: { $ref: "../media/Media.yaml" }
+  replyTo: { $ref: "../primitive/ID.yaml", nullable: true }
+  sentAt: { $ref: "../primitive/ISODateTime.yaml" }
+  editedAt: { $ref: "../primitive/ISODateTime.yaml" }

@@ -1,0 +1,7 @@
+type: object
+properties:
+  id: { $ref: "../primitive/ID.yaml" }
+  postId: { $ref: "../primitive/ID.yaml" }
+  author: { $ref: "../profile/Profile.yaml" }
+  text: { type: string }
+  createdAt: { $ref: "../primitive/ISODateTime.yaml" }

@@ -1,0 +1,4 @@
+type: object
+properties:
+  data: { type: array, items: { $ref: "../profile/Profile.yaml" } }
+  next: { type: string, nullable: true }

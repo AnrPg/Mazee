@@ -1,4 +1,4 @@
-services__text:
+services_text:
   get:
     summary: Service text for given typikon/context
     operationId: getServiceText
@@ -6,13 +6,13 @@ services__text:
     parameters:
       - in: query
         name: typikon
-        schema: { type: string, example: 'Byzantine-Std' }
+        schema: { type: string, example: "Byzantine-Std" }
       - in: query
         name: saint
-        schema: { type: string, example: 'St George' }
+        schema: { type: string, example: "St George" }
       - in: query
         name: period
-        schema: { type: string, example: 'Lent' }
+        schema: { type: string, example: "Lent" }
       - in: query
         name: calendar
         schema: { type: string, enum: [new, old], default: new }
@@ -21,4 +21,43 @@ services__text:
         description: Structured service document
         content:
           application/json:
-            schema: { $ref: '../components/schemas/services/ServiceDocument.yaml' }
+            schema: { $ref: "../components/schemas/service/ServiceDocument.yaml" }
+
+services_plan:
+  post:
+    summary: Build service layout for given context (dry-run)
+    tags: [Services]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              typikon: { type: string }
+              saint: { type: string }
+              period: { type: string }
+              calendar: { type: string, enum: [new, old], default: new }
+              options: { type: object, additionalProperties: true }
+    responses: { "200": { description: Plan, content: { application/json: { schema: { $ref: "../components/schemas/service/ServiceDocument.yaml" } } } } }
+
+services_chant_identify:
+  post:
+    summary: Identify chant from audio clip (beta)
+    tags: [Services]
+    requestBody:
+      required: true
+      content:
+        application/octet-stream:
+          schema: { type: string, format: binary }
+    responses:
+      "200":
+        description: Match
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confidence: { type: number, format: float }
+                probableServicePart: { type: string }
+                refs: { type: array, items: { type: string } }

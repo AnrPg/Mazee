@@ -1,6 +1,4 @@
 type: object
 properties:
-  data:
-    type: array
-    items: { $ref: "./Message.yaml" }
+  data: { type: array, items: { $ref: "./Session.yaml" } }
   next: { type: string, nullable: true }

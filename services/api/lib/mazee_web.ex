@@ -76,7 +76,7 @@ defmodule MazeeWeb do
   end
 
   # ----- THIS MUST BE A MACRO -----
-  defmacro __using__(which) when is_atom(which) do
-    apply(__MODULE__, which, [])
+  defmacro _using_(which) when is_atom(which) do
+    apply(_MODULE_, which, [])
   end
 end

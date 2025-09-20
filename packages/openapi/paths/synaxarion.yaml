@@ -16,3 +16,68 @@ synaxarion:
         content:
           application/json:
             schema: { $ref: "../components/schemas/synaxarion/SynaxarionEntryPage.yaml" }
+  post:
+    summary: Create entry (admin)
+    tags: [Synaxarion]
+    security: [ { bearerAuth: [] } ]
+    requestBody:
+      required: true
+      content: { application/json: { schema: { $ref: "../components/schemas/synaxarion/SynaxarionEntry.yaml" } } }
+    responses:
+      "201": { description: Created, content: { application/json: { schema: { $ref: "../components/schemas/synaxarion/SynaxarionEntry.yaml" } } } }
+
+synaxarion_entryId:
+  get:
+    summary: Get synaxarion entry
+    tags: [Synaxarion]
+    parameters: [ { in: path, name: entryId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses: { "200": { description: Entry, content: { application/json: { schema: { $ref: "../components/schemas/synaxarion/SynaxarionEntry.yaml" } } } } }
+  put:
+    summary: Replace entry (admin)
+    tags: [Synaxarion]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: entryId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    requestBody:
+      required: true
+      content: { application/json: { schema: { $ref: "../components/schemas/synaxarion/SynaxarionEntry.yaml" } } }
+    responses:
+      "200": { description: Replaced, content: { application/json: { schema: { $ref: "../components/schemas/synaxarion/SynaxarionEntry.yaml" } } } }
+  patch:
+    summary: Update entry (admin)
+    tags: [Synaxarion]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: entryId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              saint: { type: string }
+              feastType: { type: string }
+              readingRefs: { type: array, items: { type: string } }
+    responses:
+      "200": { description: Updated, content: { application/json: { schema: { $ref: "../components/schemas/synaxarion/SynaxarionEntry.yaml" } } } }
+  delete:
+    summary: Delete entry (admin)
+    tags: [Synaxarion]
+    security: [ { bearerAuth: [] } ]
+    parameters: [ { in: path, name: entryId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses: { "204": { description: Deleted } }
+
+synaxarion_entryId_life:
+  get:
+    summary: Full life text (structured)
+    tags: [Synaxarion]
+    parameters: [ { in: path, name: entryId, required: true, schema: { $ref: "../components/schemas/primitive/ID.yaml" } } ]
+    responses:
+      "200":
+        description: Life
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                language: { type: string }
+                sections: { type: array, items: { type: object, properties: { title: { type: string }, text: { type: string } } } }

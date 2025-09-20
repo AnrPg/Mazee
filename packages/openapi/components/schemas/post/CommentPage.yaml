@@ -1,6 +1,4 @@
 type: object
 properties:
-  data:
-    type: array
-    items: { $ref: "../posts/Post.yaml" }
+  data: { type: array, items: { $ref: "./Comment.yaml" } }
   next: { type: string, nullable: true }
