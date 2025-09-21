@@ -12,7 +12,7 @@ database_url =
   System.get_env("DATABASE_URL") ||
     "ecto://#{db_user}:#{db_pass}@#{db_host}:#{db_port}/#{db_name}"
 
-config :mazee, Koinonein.Repo,
+config :mazee, Mazee.Repo,
   url: database_url,
   pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
   ssl: false
