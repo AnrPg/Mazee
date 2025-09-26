@@ -1,12 +1,36 @@
 defmodule MazeeWeb.Router do
   use MazeeWeb, :router
 
-  pipeline :browser do
-    plug :accepts, ["html", "json"]
+  # ---------- Pipelines ----------
+  pipeline :api do
+    plug :accepts, ["json"]
   end
 
-  scope "/", MazeeWeb do
-    pipe_through :browser
-    get "/", PageController, :home
+  # Loads current user from Authorization: Bearer <jwt>
+  pipeline :auth do
+    plug MazeeWeb.Auth.Pipeline
+  end
+
+  # ---------- Routes ----------
+  scope "/v1", MazeeWeb do
+    pipe_through [:api]
+
+    # Public auth endpoints
+    scope "/auth" do
+      post "/register", AuthController, :register
+      post "/login", AuthController, :login
+      # (Later: POST /refresh, POST /logout if you add them)
+    end
+
+    # Protected endpoints (JWT required)
+    scope "/" do
+      pipe_through [:auth]
+
+      # Admin Users CRUD (controller enforces admin role)
+      get "/users", UsersController, :index
+      get "/users/:userId", UsersController, :show
+      patch "/users/:userId", UsersController, :patch
+      delete "/users/:userId", UsersController, :delete
+    end
   end
 end

@@ -1,0 +1,10 @@
+type: object
+properties:
+  title: { type: string }
+  subtitle: { type: string, nullable: true }
+  description: { type: string, nullable: true }
+  commemoration_date: { type: string, format: date }
+  calendar: { $ref: '../primitive/CalendarStyle.yaml' }
+  feast_rank: { type: string, nullable: true }
+  saint_slug: { type: string, nullable: true }
+  movable_rule: { type: string, nullable: true }

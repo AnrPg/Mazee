@@ -1,0 +1,24 @@
+# Day DTOs
+type: object
+required: [id, date, calendar]
+properties:
+  id: { type: string }
+  date: { type: string, format: date }
+  calendar: { $ref: '../primitive/CalendarStyle.yaml' }
+  tone_of_week:
+    type: integer
+    minimum: 1
+    maximum: 8
+    nullable: true
+  fasting:
+    type: string
+    nullable: true
+  period_tags:
+    type: array
+    items: { type: string }
+    nullable: true
+  forefeast_days: { type: integer, nullable: true }
+  afterfeast_days: { type: integer, nullable: true }
+  apodosis_offset: { type: integer, nullable: true }
+  created_at: { type: string, format: date-time, nullable: true }
+  updated_at: { type: string, format: date-time, nullable: true }

@@ -81,3 +81,548 @@ synaxarion_entryId_life:
               properties:
                 language: { type: string }
                 sections: { type: array, items: { type: object, properties: { title: { type: string }, text: { type: string } } } }
+
+
+
+
+
+
+
+synaxarion_days:
+    post:
+      summary: Create Synaxarion day
+      tags: [Synaxarion]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/synaxarion/SynaxarionDayCreate.yaml'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/synaxarion/SynaxarionDay.yaml'
+
+synaxarion_days_dayId:
+  get:
+    summary: Get Synaxarion day by ID
+    tags: [Synaxarion]
+    parameters:
+      - name: dayId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Day
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionDay.yaml' }
+  patch:
+    summary: Update Synaxarion day
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - name: dayId
+        in: path
+        required: true
+        schema: { type: string }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/synaxarion/SynaxarionDayUpdate.yaml'
+    responses:
+      '200':
+        description: Updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/synaxarion/SynaxarionDay.yaml'
+  delete:
+    summary: Delete Synaxarion day
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - name: dayId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '204':
+        description: Deleted
+
+synaxarion_days_dayId_events:
+  get:
+    summary: List events attached to a day
+    tags: [Synaxarion]
+    parameters:
+      - name: dayId
+        in: path
+        required: true
+        schema: { type: string }
+      - name: limit
+        in: query
+        schema: { type: integer, minimum: 1, maximum: 200, default: 20 }
+      - name: after
+        in: query
+        schema: { type: string, description: Cursor for pagination }
+    responses:
+      '200':
+        description: Events
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/synaxarion/SynaxarionEventPage.yaml'
+  post:
+    summary: Attach event to day (create relation)
+    description: >
+      Attaches an existing event to the given day (creates relationship row).K
+      If the relation already exists, returns 200 with the existing relation.
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - name: dayId
+        in: path
+        required: true
+        schema: { type: string }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/synaxarion/DayEventLinkCreate.yaml'
+    responses:
+      '201':
+        description: Linked
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/synaxarion/SynaxarionEvent.yaml'
+
+synaxarion_days_dayId_events_eventId:
+  delete:
+    summary: Detach event from day (delete relation)
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - name: dayId
+        in: path
+        required: true
+        schema: { type: string }
+      - name: eventId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '204':
+        description: Unlinked
+
+synaxarion_days_by-date:
+  get:
+    summary: Get day by full date (unique per calendar)
+    tags: [Synaxarion]
+    parameters:
+      - in: query
+        name: date
+        required: true
+        schema: { type: string, format: date }
+      - in: query
+        name: calendar
+        required: true
+        schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' }
+    responses:
+      '200':
+        description: Day
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionDay.yaml' }
+
+synaxarion_days_by-month-day:
+  get:
+    summary: List days by month and day (no year)
+    description: Returns all matching days across years for the given calendar.
+    tags: [Synaxarion]
+    parameters:
+      - in: query
+        name: month
+        required: true
+        schema: { type: integer, minimum: 1, maximum: 12 }
+      - in: query
+        name: day
+        required: true
+        schema: { type: integer, minimum: 1, maximum: 31 }
+      - in: query
+        name: calendar
+        required: true
+        schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' }
+      - in: query
+        name: limit
+        schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      - in: query
+        name: after
+        schema: { type: string, description: Cursor for pagination }
+    responses:
+      '200':
+        description: Days
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionDayPage.yaml' }
+
+
+
+
+synaxarion_events:
+  post:
+    summary: Create Synaxarion event
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/synaxarion/SynaxarionEventCreate.yaml' }
+    responses:
+      '201':
+        description: Created
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionEvent.yaml' }
+
+synaxarion_events_eventId:
+  patch:
+    summary: Update Synaxarion event
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema: { type: string }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/synaxarion/SynaxarionEventUpdate.yaml' }
+    responses:
+      '200':
+        description: Updated
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionEvent.yaml' }
+  delete:
+    summary: Delete Synaxarion event
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '204': { description: Deleted }
+
+synaxarion_events_by-date:
+  get:
+    summary: Commemorations on a civil date (by calendar)
+    description: Returns events commemorated on the given civil date, taking the requested calendar into account.
+    tags: [Synaxarion]
+    parameters:
+      - name: date
+        in: query
+        required: true
+        schema: { type: string, format: date }
+      - name: calendar
+        in: query
+        required: true
+        schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' }
+      - name: limit
+        in: query
+        schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      - name: after
+        in: query
+        schema: { type: string }
+    responses:
+      '200':
+        description: Events on that date
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionEventPage.yaml' }
+
+synaxarion_events_by-month-day:
+  get:
+    summary: Commemorations by month and day (no year)
+    description: Returns events matching the given month/day across years for the selected calendar.
+    tags: [Synaxarion]
+    parameters:
+      - in: query
+        name: month
+        required: true
+        schema: { type: integer, minimum: 1, maximum: 12 }
+      - in: query
+        name: day
+        required: true
+        schema: { type: integer, minimum: 1, maximum: 31 }
+      - in: query
+        name: calendar
+        required: true
+        schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' }
+      - in: query
+        name: limit
+        schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      - in: query
+        name: after
+        schema: { type: string }
+    responses:
+      '200':
+        description: Events on that month/day
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionEventPage.yaml' }
+
+synaxarion_events_by-saint:
+  get:
+    summary: Events by saint slug
+    tags: [Synaxarion]
+    parameters:
+      - { name: slug, in: query, required: true, schema: { type: string } }
+      - { name: calendar, in: query, schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' } }
+      - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      - { name: after, in: query, schema: { type: string } }
+    responses:
+      '200':
+        description: Events matching saint
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionEventPage.yaml' }
+
+synaxarion_events_by-feast-rank:
+  get:
+    summary: Events by feast rank
+    tags: [Synaxarion]
+    parameters:
+      - { name: rank, in: query, required: true, schema: { $ref: '../components/schemas/synaxarion/FeastRank.yaml' } }
+      - { name: from, in: query, schema: { type: string, format: date } }
+      - { name: to, in: query, schema: { type: string, format: date } }
+      - { name: calendar, in: query, schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' } }
+      - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      - { name: after, in: query, schema: { type: string } }
+    responses:
+      '200':
+        description: Events with given rank
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionEventPage.yaml' }
+
+synaxarion_events_search:
+  get:
+    summary: Search events (text + filters)
+    tags: [Synaxarion]
+    parameters:
+      - { name: q, in: query, schema: { type: string } }
+      - { name: calendar, in: query, schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' } }
+      - { name: rank, in: query, schema: { $ref: '../components/schemas/synaxarion/FeastRank.yaml' } }
+      - { name: tone, in: query, schema: { type: integer, minimum: 1, maximum: 8 } }
+      - { name: fasting, in: query, schema: { $ref: '../components/schemas/synaxarion/FastingLevel.yaml' } }
+      - { name: periodTag, in: query, schema: { type: string } }
+      - { name: dateFrom, in: query, schema: { type: string, format: date } }
+      - { name: dateTo, in: query, schema: { type: string, format: date } }
+      - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      - { name: after, in: query, schema: { type: string } }
+    responses:
+      '200':
+        description: Search results
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/SynaxarionEventPage.yaml' }
+
+synaxarion_events_around:
+  get:
+    summary: Events around a date (window)
+    description: Returns events within +/- window days and phase info per event.
+    tags: [Synaxarion]
+    parameters:
+      - { name: date, in: query, required: true, schema: { type: string, format: date } }
+      - { name: calendar, in: query, required: true, schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' } }
+      - { name: window, in: query, schema: { type: integer, minimum: 0, maximum: 60, default: 7 } }
+      - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      - { name: after, in: query, schema: { type: string } }
+    responses:
+      '200':
+        description: Nearby events with phase info
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items: { $ref: '../components/schemas/synaxarion/EventWithPhase.yaml' }
+                next:
+                  type: string
+                  nullable: true
+
+synaxarion_events_eventId_phases:
+  get:
+    summary: Phase dates for a specific event in a given year
+    description: >
+      Computes forefeast start, feast day, afterfeast end, and apodosis for the event,
+      for the given liturgical/civil year & calendar.
+    tags: [Synaxarion]
+    parameters:
+      - { name: eventId, in: path, required: true, schema: { type: string } }
+      - { name: year, in: query, required: true, schema: { type: integer, minimum: 1 } }
+      - { name: calendar, in: query, required: true, schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' } }
+    responses:
+      '200':
+        description: Phase dates
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/synaxarion/EventPhaseDates.yaml' }
+
+synaxarion_events_movable_preview:
+  get:
+    summary: Preview movable events for a year
+    description: >
+      Expands events with `movable_rule` expressions relative to Pascha for the
+      given year & calendar.
+    tags: [Synaxarion]
+    parameters:
+      - { name: year, in: query, required: true, schema: { type: integer } }
+      - { name: calendar, in: query, required: true, schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' } }
+      - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 100 } }
+      - { name: after, in: query, schema: { type: string } }
+    responses:
+      '200':
+        description: Movable events resolved to dates
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items: { $ref: '../components/schemas/synaxarion/MovablePreviewItem.yaml' }
+                next:
+                  type: string
+                  nullable: true
+
+synaxarion_events_eventId_hymns:
+  get:
+    summary: List hymns attached to an event
+    tags: [Synaxarion]
+    parameters:
+      - { name: eventId, in: path, required: true, schema: { type: string } }
+      - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      - { name: after, in: query, schema: { type: string } }
+    responses:
+      '200':
+        description: Hymns
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/service/HymnRefPage.yaml' }
+  post:
+    summary: Attach hymn to event (create relation)
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - { name: eventId, in: path, required: true, schema: { type: string } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/service/EventHymnLinkCreate.yaml' }
+    responses:
+      '201':
+        description: Linked
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/service/HymnRef.yaml' }
+
+synaxarion_events_eventId_hymns_hymnId:
+  delete:
+    summary: Detach hymn from event (delete relation)
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - { name: eventId, in: path, required: true, schema: { type: string } }
+      - { name: hymnId, in: path, required: true, schema: { type: string } }
+    responses:
+      '204': { description: Unlinked }
+
+
+
+
+
+synaxarion_commemorations:
+    get:
+      summary: Commemorations on a civil date (day + events)
+      description: Returns the Synaxarion day and all its events for a specific civil date and calendar.
+      tags: [Synaxarion]
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: calendar
+          required: true
+          schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' }
+      responses:
+        '200':
+          description: Day and its events
+          content:
+            application/json:
+              schema: { $ref: '../components/schemas/synaxarion/Commemoration.yaml' }
+
+synaxarion_commemorations_by-month-day:
+    get:
+      summary: Commemorations by month and day (no year)
+      description: Returns all matching days (across years) with their events for the given calendar.
+      tags: [Synaxarion]
+      parameters:
+        - in: query
+          name: month
+          required: true
+          schema: { type: integer, minimum: 1, maximum: 12 }
+        - in: query
+          name: day
+          required: true
+          schema: { type: integer, minimum: 1, maximum: 31 }
+        - in: query
+          name: calendar
+          required: true
+          schema: { $ref: '../components/schemas/primitive/CalendarStyle.yaml' }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - in: query
+          name: after
+          schema: { type: string, description: Cursor for pagination }
+      responses:
+        '200':
+          description: Days (across years) and their events
+          content:
+            application/json:
+              schema: { $ref: '../components/schemas/synaxarion/CommemorationPage.yaml' }
+
+synaxarion_commemorations_dayId:
+    get:
+      summary: Commemorations by day ID (day + events)
+      tags: [Synaxarion]
+      parameters:
+        - in: path
+          name: dayId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Day and its events
+          content:
+            application/json:
+              schema: { $ref: '../components/schemas/synaxarion/Commemoration.yaml' }

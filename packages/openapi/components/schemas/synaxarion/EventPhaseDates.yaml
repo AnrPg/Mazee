@@ -1,0 +1,6 @@
+type: object
+properties:
+  forefeast_start: { type: string, format: date, nullable: true }
+  feast_date: { type: string, format: date }
+  afterfeast_end: { type: string, format: date, nullable: true }
+  apodosis_date: { type: string, format: date, nullable: true }

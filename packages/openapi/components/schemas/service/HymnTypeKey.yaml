@@ -1,0 +1,14 @@
+type: string
+description: Free-text key with common values enumerated here for convenience.
+enum:
+  - apolytikion
+  - kontakion
+  - kathisma
+  - megalynarion
+  - exaposteilarion
+  - prokeimenon
+  - alleluaria
+  - canon_ode
+  - dogmatikon
+  - trisagion_hymn
+  - other

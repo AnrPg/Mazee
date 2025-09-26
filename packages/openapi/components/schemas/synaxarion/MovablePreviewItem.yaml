@@ -1,0 +1,5 @@
+type: object
+properties:
+  event: { $ref: './SynaxarionEvent.yaml' }
+  resolved_date: { type: string, format: date }
+  rule: { type: string, description: 'movable_rule used' }

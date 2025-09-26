@@ -61,3 +61,47 @@ services_chant_identify:
                 confidence: { type: number, format: float }
                 probableServicePart: { type: string }
                 refs: { type: array, items: { type: string } }
+
+hymns:
+  post:
+    summary: Create hymn reference
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/service/HymnRefCreate.yaml' }
+    responses:
+      '201':
+        description: Created
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/service/HymnRef.yaml' }
+
+hymns_hymnId:
+  patch:
+    summary: Update hymn reference
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - { name: hymnId, in: path, required: true, schema: { type: string } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/service/HymnRefUpdate.yaml' }
+    responses:
+      '200':
+        description: Updated
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/service/HymnRef.yaml' }
+  delete:
+    summary: Delete hymn reference
+    tags: [Synaxarion]
+    security: [{ bearerAuth: [] }]
+    parameters:
+      - { name: hymnId, in: path, required: true, schema: { type: string } }
+    responses:
+      '204': { description: Deleted }

@@ -1,0 +1,2 @@
+type: string
+enum: [fast_free, dairy_allowed, fish_allowed, wine_oil_allowed, strict, unknown]

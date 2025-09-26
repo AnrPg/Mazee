@@ -26,16 +26,20 @@ defmodule Mazee.MixProject do
     [
       {:phoenix, "~> 1.7"},
       {:phoenix_ecto, "~> 4.4"},
+      {:plug_cowboy, "~> 2.6"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:bcrypt_elixir, "~> 3.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:argon2_elixir, "~> 4.0"},
+      {:guardian, "~> 2.0"},
+      {:jason, "~> 1.4"}
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_), do: ["lib"]
+  defp elixirc_paths(_var), do: ["lib"]
 
   defp aliases do
     [

@@ -1,0 +1,13 @@
+type: object
+required: [id, type_key, lang, source_book]
+properties:
+  id: { type: string }
+  type_key: { $ref: './HymnTypeKey.yaml' }
+  lang: { type: string, example: 'el' }
+  tone: { type: integer, minimum: 1, maximum: 8, nullable: true }
+  source_book: { type: string, example: 'menaion' }
+  source_page: { type: string, nullable: true }
+  ref_code: { type: string, nullable: true }
+  text: { type: string, nullable: true }
+  created_at: { type: string, format: date-time }
+  updated_at: { type: string, format: date-time }

@@ -4,12 +4,12 @@ defmodule Mazee.Application do
 
   def start(_type, _args) do
     children = [
-      # # DB
-      # Mazee.Repo,
+      # DB
+      Mazee.Repo,
       # PubSub
-      {Phoenix.PubSub, name: Mazee.PubSub}
-      # # HTTP endpoint
-      # MazeeWeb.Endpoint
+      {Phoenix.PubSub, name: Mazee.PubSub},
+      # HTTP endpoint
+      MazeeWeb.Endpoint
     ]
 
     opts = [strategy: :one_for_one, name: Mazee.Supervisor]

@@ -1,0 +1,9 @@
+# Paginated commemoration list (used for month-day lookups)
+type: object
+properties:
+  data:
+    type: array
+    items: { $ref: './Commemoration.yaml' }
+  next:
+    type: string
+    nullable: true

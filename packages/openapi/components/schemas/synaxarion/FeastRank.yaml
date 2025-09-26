@@ -1,0 +1,11 @@
+type: string
+description: >
+  Optional liturgical rank for an event/day; keep aligned with DB enum.
+enum:
+  - simple
+  - doxology
+  - polyeleos
+  - vigil
+  - great_feast
+  - fast_day
+  - fast_free

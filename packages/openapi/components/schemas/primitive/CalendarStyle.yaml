@@ -1,0 +1,3 @@
+type: string
+enum: [new_gregorian, old_julian]
+default: new_gregorian

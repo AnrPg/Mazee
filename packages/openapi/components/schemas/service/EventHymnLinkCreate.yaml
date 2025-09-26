@@ -1,0 +1,4 @@
+type: object
+required: [hymnId]
+properties:
+  hymnId: { type: string }

@@ -173,6 +173,51 @@ paths:
   /synaxarion/{entryId}/life:
     $ref: "./paths/synaxarion.yaml#/synaxarion_entryId_life"
 
+  /synaxarion/days:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_days"
+  /synaxarion/days/{dayId}:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_days_dayId"
+  /synaxarion/days/{dayId}/events:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_days_dayId_events"
+  /synaxarion/days/{dayId}/events/{eventId}:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_days_dayId_events_eventId"
+  /synaxarion/days/by-date:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_days_by-date"
+  /synaxarion/days/by-month-day:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_days_by-month-day"
+
+  /synaxarion/events:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events"
+  /synaxarion/events/{eventId}:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_eventId"
+  /synaxarion/events/by-date:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_by-date"
+  /synaxarion/events/by-month-day:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_by-month-day"
+  /synaxarion/events/by-saint:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_by-saint"
+  /synaxarion/events/by-feast-rank:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_by-feast-rank"
+  /synaxarion/events/search:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_search"
+  /synaxarion/events/around:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_around"
+  /synaxarion/events/{eventId}/phases:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_eventId_phases"
+  /synaxarion/events/movable/preview:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_movable_preview"
+  /synaxarion/events/{eventId}/hymns:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_eventId_hymns"
+  /synaxarion/events/{eventId}/hymns/{hymnId}:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_events_eventId_hymns_hymnId"
+
+  /synaxarion/commemorations:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_commemorations"
+  /synaxarion/commemorations/by-month-day:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_commemorations_by-month-day"
+  /synaxarion/commemorations/{dayId}:
+    $ref: "./paths/synaxarion.yaml#/synaxarion_commemorations_dayId"
+
   # ---------- Services ----------
   /services/text:
     $ref: "./paths/services.yaml#/services_text"
@@ -180,6 +225,10 @@ paths:
     $ref: "./paths/services.yaml#/services_plan"
   /services/chant/identify:
     $ref: "./paths/services.yaml#/services_chant_identify"
+  /hymns:
+    $ref: "./paths/services.yaml#/hymns"
+  /hymns/{hymnId}:
+    $ref: "./paths/services.yaml#/hymns_hymnId"
   # TODO: in v2
   # /services/reminders:
   #   $ref: "./paths/services.yaml#/services_reminders"

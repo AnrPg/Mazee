@@ -1,0 +1,25 @@
+# Elixir build artifacts
+/_build
+/deps
+*.ez
+
+# Node stuff (if any)
+assets/node_modules
+node_modules
+
+# Mix/Elixir noise
+erl_crash.dump
+*.beam
+
+# VCS
+.git
+.gitignore
+
+# Editor/OS
+.DS_Store
+.idea
+.vscode
+
+# Local env files
+.env
+.env.*

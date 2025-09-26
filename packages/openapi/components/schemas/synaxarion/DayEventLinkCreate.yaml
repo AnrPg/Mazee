@@ -1,0 +1,4 @@
+type: object
+required: [eventId]
+properties:
+  eventId: { type: string }

@@ -1,0 +1,9 @@
+# Aggregated payload: a single day with its events
+type: object
+required: [day, events]
+properties:
+  day:
+    $ref: './SynaxarionDay.yaml'
+  events:
+    type: array
+    items: { $ref: './SynaxarionEvent.yaml' }

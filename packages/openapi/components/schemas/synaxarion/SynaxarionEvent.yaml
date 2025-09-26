@@ -1,0 +1,14 @@
+type: object
+required: [id, title, commemoration_date, calendar]
+properties:
+  id: { type: string }
+  title: { type: string }
+  subtitle: { type: string, nullable: true }
+  description: { type: string, nullable: true }
+  commemoration_date: { type: string, format: date }
+  calendar: { $ref: '../primitive/CalendarStyle.yaml' }
+  feast_rank: { type: string, nullable: true }
+  saint_slug: { type: string, nullable: true }
+  movable_rule: { type: string, nullable: true }
+  created_at: { type: string, format: date-time, nullable: true }
+  updated_at: { type: string, format: date-time, nullable: true }

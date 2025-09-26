@@ -1,0 +1,8 @@
+type: object
+properties:
+  data:
+    type: array
+    items: { $ref: './HymnRef.yaml' }
+  next:
+    type: string
+    nullable: true

@@ -1,0 +1,3910 @@
+openapi: 3.1.3
+info:
+  title: Mazee API
+  version: 1.0.0
+  description: |
+    Contract for Mazee — a social + Orthodox utilities platform. Generated clients: TypeScript (web) & Kotlin (Android). Backend: Phoenix.
+servers:
+  - url: https://api.mazee.app/v1
+    description: Production
+  - url: https://staging.api.mazee.app/v1
+    description: Staging
+  - url: http://localhost:4000/v1
+    description: Local dev
+security:
+  - bearerAuth: []
+  - refreshToken: []
+  - cookieAuth: []
+  - apiKeyAuth: []
+tags:
+  - name: Misc
+  - name: Auth
+  - name: Profiles
+  - name: Users
+  - name: Synaxis
+  - name: Posts
+  - name: Media
+  - name: Chat
+  - name: Priests & Confession
+  - name: Synaxarion
+  - name: Services
+  - name: Search
+  - name: Notifications
+paths:
+  /version:
+    get:
+      summary: API version
+      operationId: getVersion
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: 0.0.1
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      tags:
+        - Misc
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /auth/register:
+    post:
+      summary: Register with email/password
+      operationId: register
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Set-Cookie:
+              description: Session cookie (optional if using cookies)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /auth/login:
+    post:
+      summary: Login with email/password
+      operationId: login
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      operationId: refreshToken
+      tags:
+        - Auth
+      security:
+        - refreshToken: []
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/logout:
+    post:
+      summary: Invalidate session
+      operationId: logout
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: No Content
+  /auth/verify-email:
+    post:
+      summary: Verify email via code
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+      responses:
+        '204':
+          description: Verified
+  /auth/request-password-reset:
+    post:
+      summary: Send reset email
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  format: email
+                  type: string
+      responses:
+        '204':
+          description: Sent (always 204)
+  /auth/reset-password:
+    post:
+      summary: Reset password with token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - newPassword
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 8
+      responses:
+        '204':
+          description: Updated
+  /auth/sessions:
+    get:
+      summary: List active sessions
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sessions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPage'
+  /auth/sessions/{sessionId}:
+    delete:
+      summary: Revoke a session (log out another device)
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Revoked
+  /auth/push-tokens:
+    post:
+      summary: Register push token (FCM/APNS/Web)
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - platform
+                - token
+              properties:
+                platform:
+                  type: string
+                  enum:
+                    - android
+                    - ios
+                    - web
+                token:
+                  type: string
+      responses:
+        '201':
+          description: Registered
+  /handles/check:
+    get:
+      summary: Check handle availability
+      tags:
+        - Profiles
+      parameters:
+        - in: query
+          name: handle
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Availability
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                  suggestion:
+                    type: string
+                    nullable: true
+  /profiles/{userId}:
+    get:
+      summary: Get profile by userId
+      operationId: getProfile
+      tags:
+        - Profiles
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update own profile
+      operationId: updateProfile
+      tags:
+        - Profiles
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /profiles/{userId}/block:
+    post:
+      summary: Block user
+      tags:
+        - Profiles
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: Blocked
+    delete:
+      summary: Unblock user
+      tags:
+        - Profiles
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: Unblocked
+  /profiles/{userId}/mute:
+    post:
+      summary: Mute posts/notifications from user
+      tags:
+        - Profiles
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                durationHours:
+                  type: integer
+                  minimum: 1
+      responses:
+        '204':
+          description: Muted
+  /users:
+    get:
+      summary: List users (admin)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Create user (admin/import)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /users/{userId}:
+    get:
+      summary: Get user (admin)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Replace user (admin)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserReplace'
+      responses:
+        '200':
+          description: Replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '412':
+          description: Precondition Failed (ETag)
+    patch:
+      summary: Patch user (admin)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+    delete:
+      summary: Deactivate/soft-delete user (admin)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: Deactivated
+  /me:
+    patch:
+      summary: Update my profile (self)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+  /me/settings:
+    get:
+      summary: Get my settings
+      tags:
+        - Profiles
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+    patch:
+      summary: Update my settings
+      tags:
+        - Profiles
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+  /me/delete:
+    post:
+      summary: Close my account (soft-delete)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - confirm
+              properties:
+                confirm:
+                  type: string
+                  enum:
+                    - DELETE
+                reason:
+                  type: string
+                  maxLength: 500
+      responses:
+        '202':
+          description: Scheduled for deletion
+  /synaxis:
+    get:
+      summary: List my Synaxis (connections)
+      operationId: listConnections
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      responses:
+        '200':
+          description: Connections
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionPage'
+  /synaxis/{userId}:
+    get:
+      summary: Relationship status with user
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - none
+                      - requested_by_me
+                      - requested_by_them
+                      - connected
+                      - blocked
+    put:
+      summary: Force connect (admin/merge accounts)
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: Connected
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      summary: Remove connection
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: Removed
+  /synaxis/requests:
+    get:
+      summary: Incoming/outgoing requests
+      operationId: listFriendRequests
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: direction
+          schema:
+            type: string
+            enum:
+              - incoming
+              - outgoing
+            default: incoming
+      responses:
+        '200':
+          description: Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendRequestPage'
+    post:
+      summary: Send connection request
+      operationId: sendFriendRequest
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - toUserId
+              properties:
+                toUserId:
+                  $ref: '#/components/schemas/ID'
+      responses:
+        '201':
+          description: Created
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /synaxis/requests/{requestId}:
+    post:
+      summary: Accept/decline request
+      operationId: actOnFriendRequest
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - accept
+                    - decline
+      responses:
+        '200':
+          description: Updated; connection may be created on accept
+          headers:
+            Location:
+              description: URL of the connection resource if created
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  request:
+                    $ref: '#/components/schemas/FriendRequest'
+                  connection:
+                    allOf:
+                      - $ref: '#/components/schemas/Connection'
+                    nullable: true
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Already connected or request no longer valid
+        '410':
+          description: Request expired or withdrawn
+    delete:
+      summary: Cancel pending request
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Canceled
+  /synaxis/suggestions:
+    get:
+      summary: People you may know
+      tags:
+        - Synaxis
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      responses:
+        '200':
+          description: Suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Profile'
+                  next:
+                    type: string
+                    nullable: true
+  /posts:
+    get:
+      summary: Feed (personalized)
+      operationId: listFeed
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      responses:
+        '200':
+          description: Feed page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPage'
+    post:
+      summary: Create post as current user
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          headers:
+            Location:
+              schema:
+                type: string
+  /users/{userId}/posts:
+    post:
+      summary: Create post
+      operationId: createPost
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URL of new resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+    get:
+      summary: Get all posts from user
+      operationId: getUserPosts
+      tags:
+        - Posts
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User"s Posts page
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  next:
+                    type: string
+                    nullable: true
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /posts/{postId}:
+    get:
+      summary: Get post
+      operationId: getPost
+      tags:
+        - Posts
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete post
+      operationId: deletePost
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      responses:
+        '204':
+          description: Deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    put:
+      summary: Replace post (author only)
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PostCreate'
+                - type: object
+                  required:
+                    - kind
+      responses:
+        '200':
+          description: Replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    patch:
+      summary: Edit post (author only)
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /posts/{postId}/like:
+    post:
+      summary: Like a post
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      responses:
+        '204':
+          description: Liked
+    delete:
+      summary: Remove like
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      responses:
+        '204':
+          description: Unliked
+  /posts/{postId}/comments:
+    get:
+      summary: List comments
+      tags:
+        - Posts
+      parameters:
+        - $ref: '#/components/parameters/postId'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Comments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentPage'
+    post:
+      summary: Add comment
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  maxLength: 2000
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+  /posts/{postId}/comments/{commentId}:
+    delete:
+      summary: Delete comment
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Deleted
+  /reports:
+    post:
+      summary: Report content
+      tags:
+        - Misc
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - kind
+                - targetId
+                - reason
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - post
+                    - comment
+                    - profile
+                    - message
+                targetId:
+                  $ref: '#/components/schemas/ID'
+                reason:
+                  type: string
+                  maxLength: 500
+      responses:
+        '201':
+          description: Submitted
+  /media/uploads:
+    post:
+      summary: Begin media upload (signed URL pattern)
+      operationId: createUpload
+      tags:
+        - Media
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contentType
+                - bytes
+              properties:
+                contentType:
+                  type: string
+                  example: image/jpeg
+                bytes:
+                  type: integer
+                  minimum: 1
+      responses:
+        '201':
+          description: Signed URL issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadTicket'
+  /media/{mediaId}:
+    get:
+      summary: Get media metadata
+      tags:
+        - Media
+      parameters:
+        - in: path
+          name: mediaId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '200':
+          description: Media
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Media'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update media metadata
+      tags:
+        - Media
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: mediaId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alt:
+                  type: string
+                  maxLength: 300
+                caption:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Media'
+    delete:
+      summary: Delete media (if unused or author)
+      tags:
+        - Media
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: mediaId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Deleted
+  /media/uploads/{uploadId}:
+    get:
+      summary: Get upload ticket
+      tags:
+        - Media
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: uploadId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '200':
+          description: Ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadTicket'
+    delete:
+      summary: Cancel/expire upload
+      tags:
+        - Media
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: uploadId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Canceled
+  /media/uploads/{uploadId}/complete:
+    post:
+      summary: Mark upload complete (server-side verify)
+      tags:
+        - Media
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: uploadId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '200':
+          description: Finalized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Media'
+  /chats:
+    get:
+      summary: List my chats
+      operationId: listChats
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      responses:
+        '200':
+          description: Chat page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatPage'
+    post:
+      summary: Start chat (1:1 or group)
+      operationId: createChat
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+  /chats/{chatId}/messages:
+    get:
+      summary: Messages in a chat (page)
+      operationId: listMessages
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      responses:
+        '200':
+          description: Messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePage'
+    post:
+      summary: Send a message
+      operationId: sendMessage
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageCreate'
+      responses:
+        '201':
+          description: Sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /chats/{chatId}:
+    get:
+      summary: Get chat
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      responses:
+        '200':
+          description: Chat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update chat (title)
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 120
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+    put:
+      summary: Replace chat (members & title)
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  nullable: true
+                memberIds:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ID'
+                  minItems: 1
+      responses:
+        '200':
+          description: Replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+    delete:
+      summary: Leave or delete chat
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      responses:
+        '204':
+          description: Left/Deleted
+  /chats/{chatId}/members:
+    get:
+      summary: List members
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      responses:
+        '200':
+          description: Members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+    post:
+      summary: Add members
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - memberIds
+              properties:
+                memberIds:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Added
+  /chats/{chatId}/members/{userId}:
+    delete:
+      summary: Remove member
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: Removed
+  /chats/{chatId}/messages/{messageId}:
+    delete:
+      summary: Delete own message
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Deleted
+  /chats/{chatId}/typing:
+    post:
+      summary: Typing indicator (best-effort)
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      responses:
+        '204':
+          description: Ack
+  /chats/{chatId}/read:
+    post:
+      summary: Mark messages up to cursor as read
+      tags:
+        - Chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - messageId
+              properties:
+                messageId:
+                  $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Updated
+  /synaxarion:
+    get:
+      summary: Day’s saints per calendar type
+      operationId: listSynaxarion
+      tags:
+        - Synaxarion
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: calendar
+          schema:
+            type: string
+            enum:
+              - new
+              - old
+            default: new
+      responses:
+        '200':
+          description: Entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEntryPage'
+    post:
+      summary: Create entry (admin)
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynaxarionEntry'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEntry'
+  /synaxarion/{entryId}:
+    get:
+      summary: Get synaxarion entry
+      tags:
+        - Synaxarion
+      parameters:
+        - in: path
+          name: entryId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '200':
+          description: Entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEntry'
+    put:
+      summary: Replace entry (admin)
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: entryId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynaxarionEntry'
+      responses:
+        '200':
+          description: Replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEntry'
+    patch:
+      summary: Update entry (admin)
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: entryId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                saint:
+                  type: string
+                feastType:
+                  type: string
+                readingRefs:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEntry'
+    delete:
+      summary: Delete entry (admin)
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: entryId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Deleted
+  /synaxarion/{entryId}/life:
+    get:
+      summary: Full life text (structured)
+      tags:
+        - Synaxarion
+      parameters:
+        - in: path
+          name: entryId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '200':
+          description: Life
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  language:
+                    type: string
+                  sections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        text:
+                          type: string
+  /synaxarion/days:
+    post:
+      summary: Create Synaxarion day
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynaxarionDayCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionDay'
+  /synaxarion/days/{dayId}:
+    get:
+      summary: Get Synaxarion day by ID
+      tags:
+        - Synaxarion
+      parameters:
+        - name: dayId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Day
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionDay'
+    patch:
+      summary: Update Synaxarion day
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dayId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynaxarionDayUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionDay'
+    delete:
+      summary: Delete Synaxarion day
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dayId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  /synaxarion/days/{dayId}/events:
+    get:
+      summary: List events attached to a day
+      tags:
+        - Synaxarion
+      parameters:
+        - name: dayId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 20
+        - name: after
+          in: query
+          schema:
+            type: string
+            description: Cursor for pagination
+      responses:
+        '200':
+          description: Events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEventPage'
+    post:
+      summary: Attach event to day (create relation)
+      description: |
+        Attaches an existing event to the given day (creates relationship row).K If the relation already exists, returns 200 with the existing relation.
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dayId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DayEventLinkCreate'
+      responses:
+        '201':
+          description: Linked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEvent'
+  /synaxarion/days/{dayId}/events/{eventId}:
+    delete:
+      summary: Detach event from day (delete relation)
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dayId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Unlinked
+  /synaxarion/days/by-date:
+    get:
+      summary: Get day by full date (unique per calendar)
+      tags:
+        - Synaxarion
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: calendar
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+      responses:
+        '200':
+          description: Day
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionDay'
+  /synaxarion/days/by-month-day:
+    get:
+      summary: List days by month and day (no year)
+      description: Returns all matching days across years for the given calendar.
+      tags:
+        - Synaxarion
+      parameters:
+        - in: query
+          name: month
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - in: query
+          name: day
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31
+        - in: query
+          name: calendar
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - in: query
+          name: after
+          schema:
+            type: string
+            description: Cursor for pagination
+      responses:
+        '200':
+          description: Days
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionDayPage'
+  /synaxarion/events:
+    post:
+      summary: Create Synaxarion event
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynaxarionEventCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEvent'
+  /synaxarion/events/{eventId}:
+    patch:
+      summary: Update Synaxarion event
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynaxarionEventUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEvent'
+    delete:
+      summary: Delete Synaxarion event
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  /synaxarion/events/by-date:
+    get:
+      summary: Commemorations on a civil date (by calendar)
+      description: Returns events commemorated on the given civil date, taking the requested calendar into account.
+      tags:
+        - Synaxarion
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: calendar
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: after
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Events on that date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEventPage'
+  /synaxarion/events/by-month-day:
+    get:
+      summary: Commemorations by month and day (no year)
+      description: Returns events matching the given month/day across years for the selected calendar.
+      tags:
+        - Synaxarion
+      parameters:
+        - in: query
+          name: month
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - in: query
+          name: day
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31
+        - in: query
+          name: calendar
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - in: query
+          name: after
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Events on that month/day
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEventPage'
+  /synaxarion/events/by-saint:
+    get:
+      summary: Events by saint slug
+      tags:
+        - Synaxarion
+      parameters:
+        - name: slug
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: calendar
+          in: query
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: after
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Events matching saint
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEventPage'
+  /synaxarion/events/by-feast-rank:
+    get:
+      summary: Events by feast rank
+      tags:
+        - Synaxarion
+      parameters:
+        - name: rank
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/FeastRank'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: calendar
+          in: query
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: after
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Events with given rank
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEventPage'
+  /synaxarion/events/search:
+    get:
+      summary: Search events (text + filters)
+      tags:
+        - Synaxarion
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: calendar
+          in: query
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - name: rank
+          in: query
+          schema:
+            $ref: '#/components/schemas/FeastRank'
+        - name: tone
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 8
+        - name: fasting
+          in: query
+          schema:
+            $ref: '#/components/schemas/FastingLevel'
+        - name: periodTag
+          in: query
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: after
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynaxarionEventPage'
+  /synaxarion/events/around:
+    get:
+      summary: Events around a date (window)
+      description: Returns events within +/- window days and phase info per event.
+      tags:
+        - Synaxarion
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: calendar
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - name: window
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 60
+            default: 7
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: after
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Nearby events with phase info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventWithPhase'
+                  next:
+                    type: string
+                    nullable: true
+  /synaxarion/events/{eventId}/phases:
+    get:
+      summary: Phase dates for a specific event in a given year
+      description: |
+        Computes forefeast start, feast day, afterfeast end, and apodosis for the event, for the given liturgical/civil year & calendar.
+      tags:
+        - Synaxarion
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - name: calendar
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+      responses:
+        '200':
+          description: Phase dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPhaseDates'
+  /synaxarion/events/movable/preview:
+    get:
+      summary: Preview movable events for a year
+      description: |
+        Expands events with `movable_rule` expressions relative to Pascha for the given year & calendar.
+      tags:
+        - Synaxarion
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: calendar
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 100
+        - name: after
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Movable events resolved to dates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MovablePreviewItem'
+                  next:
+                    type: string
+                    nullable: true
+  /synaxarion/events/{eventId}/hymns:
+    get:
+      summary: List hymns attached to an event
+      tags:
+        - Synaxarion
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: after
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Hymns
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HymnRefPage'
+    post:
+      summary: Attach hymn to event (create relation)
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventHymnLinkCreate'
+      responses:
+        '201':
+          description: Linked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HymnRef'
+  /synaxarion/events/{eventId}/hymns/{hymnId}:
+    delete:
+      summary: Detach hymn from event (delete relation)
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: hymnId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Unlinked
+  /synaxarion/commemorations:
+    get:
+      summary: Commemorations on a civil date (day + events)
+      description: Returns the Synaxarion day and all its events for a specific civil date and calendar.
+      tags:
+        - Synaxarion
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: calendar
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+      responses:
+        '200':
+          description: Day and its events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commemoration'
+  /synaxarion/commemorations/by-month-day:
+    get:
+      summary: Commemorations by month and day (no year)
+      description: Returns all matching days (across years) with their events for the given calendar.
+      tags:
+        - Synaxarion
+      parameters:
+        - in: query
+          name: month
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - in: query
+          name: day
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31
+        - in: query
+          name: calendar
+          required: true
+          schema:
+            $ref: '#/components/schemas/CalendarStyle'
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - in: query
+          name: after
+          schema:
+            type: string
+            description: Cursor for pagination
+      responses:
+        '200':
+          description: Days (across years) and their events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommemorationPage'
+  /synaxarion/commemorations/{dayId}:
+    get:
+      summary: Commemorations by day ID (day + events)
+      tags:
+        - Synaxarion
+      parameters:
+        - in: path
+          name: dayId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Day and its events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commemoration'
+  /services/text:
+    get:
+      summary: Service text for given typikon/context
+      operationId: getServiceText
+      tags:
+        - Services
+      parameters:
+        - in: query
+          name: typikon
+          schema:
+            type: string
+            example: Byzantine-Std
+        - in: query
+          name: saint
+          schema:
+            type: string
+            example: St George
+        - in: query
+          name: period
+          schema:
+            type: string
+            example: Lent
+        - in: query
+          name: calendar
+          schema:
+            type: string
+            enum:
+              - new
+              - old
+            default: new
+      responses:
+        '200':
+          description: Structured service document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDocument'
+  /services/plan:
+    post:
+      summary: Build service layout for given context (dry-run)
+      tags:
+        - Services
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                typikon:
+                  type: string
+                saint:
+                  type: string
+                period:
+                  type: string
+                calendar:
+                  type: string
+                  enum:
+                    - new
+                    - old
+                  default: new
+                options:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDocument'
+  /services/chant/identify:
+    post:
+      summary: Identify chant from audio clip (beta)
+      tags:
+        - Services
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Match
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  confidence:
+                    type: number
+                    format: float
+                  probableServicePart:
+                    type: string
+                  refs:
+                    type: array
+                    items:
+                      type: string
+  /hymns:
+    post:
+      summary: Create hymn reference
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HymnRefCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HymnRef'
+  /hymns/{hymnId}:
+    patch:
+      summary: Update hymn reference
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: hymnId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HymnRefUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HymnRef'
+    delete:
+      summary: Delete hymn reference
+      tags:
+        - Synaxarion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: hymnId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  /search:
+    get:
+      summary: Search across posts, profiles, services
+      operationId: search
+      tags:
+        - Search
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: scope
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - posts
+                - profiles
+                - services
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      responses:
+        '200':
+          description: Results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+    post:
+      summary: Advanced search with filters/facets
+      tags:
+        - Search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                q:
+                  type: string
+                scope:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - posts
+                      - profiles
+                      - services
+                filters:
+                  type: object
+                  additionalProperties: true
+                sort:
+                  type: string
+                  enum:
+                    - relevance
+                    - recent
+                    - popular
+                  default: relevance
+                topK:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 20
+      responses:
+        '200':
+          description: Results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+  /search/suggestions:
+    get:
+      summary: Typeahead for people, posts, services
+      tags:
+        - Search
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: topK
+          schema:
+            type: integer
+            default: 5
+            minimum: 1
+            maximum: 20
+      responses:
+        '200':
+          description: Suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Profile'
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  services:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceDocument'
+  /notifications:
+    get:
+      summary: List notifications
+      operationId: listNotifications
+      tags:
+        - Notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+      responses:
+        '200':
+          description: Page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPage'
+  /notifications/{notificationId}:
+    get:
+      summary: Get notification
+      tags:
+        - Notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '200':
+          description: Notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+    delete:
+      summary: Delete notification
+      tags:
+        - Notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      responses:
+        '204':
+          description: Deleted
+    patch:
+      summary: Mark single notification read/unread
+      tags:
+        - Notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema:
+            $ref: '#/components/schemas/ID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                read:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+  /notifications/mark-all-read:
+    post:
+      summary: Mark all as read
+      tags:
+        - Notifications
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Updated
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    refreshToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT-Refresh
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: _mazee_session
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  parameters:
+    userId:
+      in: path
+      name: userId
+      required: true
+      schema:
+        $ref: '#/components/schemas/ID'
+    postId:
+      in: path
+      name: postId
+      required: true
+      schema:
+        $ref: '#/components/schemas/ID'
+    chatId:
+      in: path
+      name: chatId
+      required: true
+      schema:
+        $ref: '#/components/schemas/ID'
+    limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    after:
+      in: query
+      name: after
+      schema:
+        type: string
+        description: Cursor for pagination
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        version:
+          type: string
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - handle
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        handle:
+          type: string
+          pattern: ^[a-z0-9_\.]{3,30}$
+    ID:
+      type: string
+      description: UUID/ULID
+      example: 01J8ZK7M4R01MT92X8T5W8Q8FZ
+    ISODateTime:
+      type: string
+      format: date-time
+      example: '2025-09-11T13:20:30Z'
+    Profile:
+      type: object
+      required:
+        - id
+        - handle
+        - displayName
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        handle:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: string
+          maxLength: 500
+        avatarUrl:
+          type: string
+          format: uri
+        location:
+          type: string
+        createdAt:
+          $ref: '#/components/schemas/ISODateTime'
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresInSec:
+          type: integer
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/Profile'
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: not_found
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    Session:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        userAgent:
+          type: string
+        ip:
+          type: string
+        createdAt:
+          $ref: '#/components/schemas/ISODateTime'
+        lastSeenAt:
+          $ref: '#/components/schemas/ISODateTime'
+        current:
+          type: boolean
+    SessionPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Session'
+        next:
+          type: string
+          nullable: true
+    ProfileUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        bio:
+          type: string
+          maxLength: 500
+        location:
+          type: string
+        avatarUploadId:
+          $ref: '#/components/schemas/ID'
+    UserPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+        next:
+          type: string
+          nullable: true
+    UserCreate:
+      type: object
+      required:
+        - email
+        - password
+        - handle
+        - displayName
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        handle:
+          type: string
+          pattern: ^[a-z0-9_.]{3,30}$
+        displayName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+            enum:
+              - user
+              - admin
+              - priest
+          default:
+            - user
+    UserReplace:
+      allOf:
+        - $ref: '#/components/schemas/Profile'
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+            roles:
+              type: array
+              items:
+                type: string
+                enum:
+                  - user
+                  - admin
+                  - priest
+            status:
+              type: string
+              enum:
+                - active
+                - suspended
+                - deleted
+              default: active
+    UserSettings:
+      type: object
+      properties:
+        privacy:
+          type: object
+          properties:
+            profileVisibility:
+              type: string
+              enum:
+                - public
+                - connections
+                - private
+              default: public
+            messageWhoCanDM:
+              type: string
+              enum:
+                - anyone
+                - connections
+                - none
+              default: connections
+        notifications:
+          type: object
+          properties:
+            pushEnabled:
+              type: boolean
+              default: true
+            emailDigest:
+              type: string
+              enum:
+                - 'off'
+                - daily
+                - weekly
+              default: weekly
+    Connection:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/Profile'
+        since:
+          $ref: '#/components/schemas/ISODateTime'
+    ConnectionPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Connection'
+        next:
+          type: string
+          nullable: true
+    FriendRequest:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        from:
+          $ref: '#/components/schemas/Profile'
+        to:
+          $ref: '#/components/schemas/Profile'
+        status:
+          type: string
+          enum:
+            - pending
+            - accepted
+            - declined
+        createdAt:
+          $ref: '#/components/schemas/ISODateTime'
+    FriendRequestPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FriendRequest'
+        next:
+          type: string
+          nullable: true
+    Media:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        url:
+          type: string
+          format: uri
+        contentType:
+          type: string
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+    Post:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        author:
+          $ref: '#/components/schemas/Profile'
+        kind:
+          type: string
+          enum:
+            - text
+            - image
+            - video
+        text:
+          type: string
+          nullable: true
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+        stats:
+          type: object
+          properties:
+            likes:
+              type: integer
+            comments:
+              type: integer
+        createdAt:
+          $ref: '#/components/schemas/ISODateTime'
+    PostPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
+        next:
+          type: string
+          nullable: true
+    PostCreate:
+      type: object
+      required:
+        - kind
+      properties:
+        kind:
+          type: string
+          enum:
+            - text
+            - image
+            - video
+        text:
+          type: string
+          maxLength: 4000
+        mediaUploadIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ID'
+        audience:
+          type: string
+          enum:
+            - public
+            - synaxia
+            - private
+          default: public
+    PostUpdate:
+      type: object
+      properties:
+        text:
+          type: string
+          maxLength: 4000
+        audience:
+          type: string
+          enum:
+            - public
+            - synaxia
+            - private
+    Comment:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        postId:
+          $ref: '#/components/schemas/ID'
+        author:
+          $ref: '#/components/schemas/Profile'
+        text:
+          type: string
+        createdAt:
+          $ref: '#/components/schemas/ISODateTime'
+    CommentPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        next:
+          type: string
+          nullable: true
+    UploadTicket:
+      type: object
+      properties:
+        uploadId:
+          $ref: '#/components/schemas/ID'
+        putUrl:
+          type: string
+          format: uri
+        finalUrl:
+          type: string
+          format: uri
+    Message:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        chatId:
+          $ref: '#/components/schemas/ID'
+        sender:
+          $ref: '#/components/schemas/Profile'
+        text:
+          type: string
+          nullable: true
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+        replyTo:
+          $ref: '#/components/schemas/ID'
+          nullable: true
+        sentAt:
+          $ref: '#/components/schemas/ISODateTime'
+        editedAt:
+          $ref: '#/components/schemas/ISODateTime'
+    Chat:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        title:
+          type: string
+          nullable: true
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+        lastMessage:
+          $ref: '#/components/schemas/Message'
+        createdAt:
+          $ref: '#/components/schemas/ISODateTime'
+    ChatPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chat'
+        next:
+          type: string
+          nullable: true
+    ChatCreate:
+      type: object
+      required:
+        - participantIds
+      properties:
+        participantIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ID'
+        title:
+          type: string
+          nullable: true
+    MessagePage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        next:
+          type: string
+          nullable: true
+    MessageCreate:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          maxLength: 8000
+        mediaUploadIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ID'
+    SynaxarionEntry:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        date:
+          type: string
+          format: date
+        saint:
+          type: string
+        feastType:
+          type: string
+        readingRefs:
+          type: array
+          items:
+            type: string
+    SynaxarionEntryPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SynaxarionEntry'
+        next:
+          type: string
+          nullable: true
+    CalendarStyle:
+      type: string
+      enum:
+        - new_gregorian
+        - old_julian
+      default: new_gregorian
+    SynaxarionDayCreate:
+      type: object
+      required:
+        - date
+        - calendar
+      properties:
+        date:
+          type: string
+          format: date
+        calendar:
+          $ref: '#/components/schemas/CalendarStyle'
+        tone_of_week:
+          type: integer
+          minimum: 1
+          maximum: 8
+          nullable: true
+        fasting:
+          type: string
+          nullable: true
+        period_tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        forefeast_days:
+          type: integer
+          nullable: true
+        afterfeast_days:
+          type: integer
+          nullable: true
+        apodosis_offset:
+          type: integer
+          nullable: true
+    SynaxarionDay:
+      type: object
+      required:
+        - id
+        - date
+        - calendar
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        calendar:
+          $ref: '#/components/schemas/CalendarStyle'
+        tone_of_week:
+          type: integer
+          minimum: 1
+          maximum: 8
+          nullable: true
+        fasting:
+          type: string
+          nullable: true
+        period_tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        forefeast_days:
+          type: integer
+          nullable: true
+        afterfeast_days:
+          type: integer
+          nullable: true
+        apodosis_offset:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    SynaxarionDayUpdate:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        calendar:
+          $ref: '#/components/schemas/CalendarStyle'
+        tone_of_week:
+          type: integer
+          minimum: 1
+          maximum: 8
+          nullable: true
+        fasting:
+          type: string
+          nullable: true
+        period_tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        forefeast_days:
+          type: integer
+          nullable: true
+        afterfeast_days:
+          type: integer
+          nullable: true
+        apodosis_offset:
+          type: integer
+          nullable: true
+    SynaxarionEvent:
+      type: object
+      required:
+        - id
+        - title
+        - commemoration_date
+        - calendar
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        subtitle:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        commemoration_date:
+          type: string
+          format: date
+        calendar:
+          $ref: '#/components/schemas/CalendarStyle'
+        feast_rank:
+          type: string
+          nullable: true
+        saint_slug:
+          type: string
+          nullable: true
+        movable_rule:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    SynaxarionEventPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SynaxarionEvent'
+        next:
+          type: string
+          nullable: true
+    DayEventLinkCreate:
+      type: object
+      required:
+        - eventId
+      properties:
+        eventId:
+          type: string
+    SynaxarionDayPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SynaxarionDay'
+        next:
+          type: string
+          nullable: true
+    SynaxarionEventCreate:
+      type: object
+      required:
+        - title
+        - commemoration_date
+        - calendar
+      properties:
+        title:
+          type: string
+        subtitle:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        commemoration_date:
+          type: string
+          format: date
+        calendar:
+          $ref: '#/components/schemas/CalendarStyle'
+        feast_rank:
+          type: string
+          nullable: true
+        saint_slug:
+          type: string
+          nullable: true
+        movable_rule:
+          type: string
+          nullable: true
+    SynaxarionEventUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        subtitle:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        commemoration_date:
+          type: string
+          format: date
+        calendar:
+          $ref: '#/components/schemas/CalendarStyle'
+        feast_rank:
+          type: string
+          nullable: true
+        saint_slug:
+          type: string
+          nullable: true
+        movable_rule:
+          type: string
+          nullable: true
+    FeastRank:
+      type: string
+      description: |
+        Optional liturgical rank for an event/day; keep aligned with DB enum.
+      enum:
+        - simple
+        - doxology
+        - polyeleos
+        - vigil
+        - great_feast
+        - fast_day
+        - fast_free
+    FastingLevel:
+      type: string
+      enum:
+        - fast_free
+        - dairy_allowed
+        - fish_allowed
+        - wine_oil_allowed
+        - strict
+        - unknown
+    Phase:
+      type: string
+      enum:
+        - forefeast
+        - feast
+        - afterfeast
+        - apodosis
+    EventWithPhase:
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/SynaxarionEvent'
+        phase:
+          $ref: '#/components/schemas/Phase'
+        phase_date:
+          type: string
+          format: date
+        day_offset:
+          type: integer
+          description: Offset relative to feast day (0 = feast)
+    EventPhaseDates:
+      type: object
+      properties:
+        forefeast_start:
+          type: string
+          format: date
+          nullable: true
+        feast_date:
+          type: string
+          format: date
+        afterfeast_end:
+          type: string
+          format: date
+          nullable: true
+        apodosis_date:
+          type: string
+          format: date
+          nullable: true
+    MovablePreviewItem:
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/SynaxarionEvent'
+        resolved_date:
+          type: string
+          format: date
+        rule:
+          type: string
+          description: movable_rule used
+    HymnTypeKey:
+      type: string
+      description: Free-text key with common values enumerated here for convenience.
+      enum:
+        - apolytikion
+        - kontakion
+        - kathisma
+        - megalynarion
+        - exaposteilarion
+        - prokeimenon
+        - alleluaria
+        - canon_ode
+        - dogmatikon
+        - trisagion_hymn
+        - other
+    HymnRef:
+      type: object
+      required:
+        - id
+        - type_key
+        - lang
+        - source_book
+      properties:
+        id:
+          type: string
+        type_key:
+          $ref: '#/components/schemas/HymnTypeKey'
+        lang:
+          type: string
+          example: el
+        tone:
+          type: integer
+          minimum: 1
+          maximum: 8
+          nullable: true
+        source_book:
+          type: string
+          example: menaion
+        source_page:
+          type: string
+          nullable: true
+        ref_code:
+          type: string
+          nullable: true
+        text:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    HymnRefPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HymnRef'
+        next:
+          type: string
+          nullable: true
+    EventHymnLinkCreate:
+      type: object
+      required:
+        - hymnId
+      properties:
+        hymnId:
+          type: string
+    Commemoration:
+      type: object
+      required:
+        - day
+        - events
+      properties:
+        day:
+          $ref: '#/components/schemas/SynaxarionDay'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/SynaxarionEvent'
+    CommemorationPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Commemoration'
+        next:
+          type: string
+          nullable: true
+    ServiceDocument:
+      type: object
+      description: Structured service with role-bearing lines
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        title:
+          type: string
+        typikon:
+          type: string
+        parts:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum:
+                  - Priest
+                  - Deacon
+                  - Reader
+                  - Choir
+                  - People
+              text:
+                type: string
+              language:
+                type: string
+                example: el
+    HymnRefCreate:
+      type: object
+      required:
+        - type_key
+        - lang
+        - source_book
+      properties:
+        type_key:
+          $ref: '#/components/schemas/HymnTypeKey'
+        lang:
+          type: string
+        tone:
+          type: integer
+          minimum: 1
+          maximum: 8
+          nullable: true
+        source_book:
+          type: string
+        source_page:
+          type: string
+          nullable: true
+        ref_code:
+          type: string
+          nullable: true
+        text:
+          type: string
+          nullable: true
+    HymnRefUpdate:
+      type: object
+      properties:
+        type_key:
+          $ref: '#/components/schemas/HymnTypeKey'
+        lang:
+          type: string
+        tone:
+          type: integer
+          minimum: 1
+          maximum: 8
+          nullable: true
+        source_book:
+          type: string
+        source_page:
+          type: string
+          nullable: true
+        ref_code:
+          type: string
+          nullable: true
+        text:
+          type: string
+          nullable: true
+    SearchResults:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceDocument'
+    Notification:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+        kind:
+          type: string
+          enum:
+            - friend_request
+            - message
+            - post_like
+            - appointment
+        actor:
+          $ref: '#/components/schemas/Profile'
+        data:
+          type: object
+          additionalProperties: true
+        createdAt:
+          $ref: '#/components/schemas/ISODateTime'
+        read:
+          type: boolean
+    NotificationPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        next:
+          type: string
+          nullable: true

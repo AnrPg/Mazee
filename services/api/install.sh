@@ -276,7 +276,7 @@ install_elixir() {
       unzip -q "${tmp_dir}/${elixir_zip}" -d "${elixir_dir}"
     else
       "${otp_dir}/bin/erl" -noshell -eval \
-        '[Zip,Dir] = init:get_plain_arguments(), {ok,_} = zip:unzip(Zip, [{cwd, Dir}]), halt().' \
+        '[Zip,Dir] = init:get_plain_arguments(), {ok,_var} = zip:unzip(Zip, [{cwd, Dir}]), halt().' \
         -- "${tmp_dir}/${elixir_zip}" "${elixir_dir}"
     fi
 

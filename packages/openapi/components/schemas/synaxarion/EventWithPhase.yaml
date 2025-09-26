@@ -1,0 +1,6 @@
+type: object
+properties:
+  event: { $ref: './SynaxarionEvent.yaml' }
+  phase: { $ref: './Phase.yaml' }
+  phase_date: { type: string, format: date }
+  day_offset: { type: integer, description: 'Offset relative to feast day (0 = feast)' }
