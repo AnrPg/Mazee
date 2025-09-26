@@ -23,7 +23,7 @@ WORKDIR /app/apps/web
 EXPOSE 3000
 
 # 5) Default dev command (compose will still run an install before dev to handle bind mounts)
-CMD ["sh","-lc","corepack enable && corepack prepare yarn@4.9.2 --activate && cd /app && (yarn install --immutable || yarn install) && cd apps/web && yarn dev -p 3000 -H 0.0.0.0"]
+CMD ["sh","-lc","corepack enable && corepack prepare yarn@4.10.3 --activate && cd /app && (yarn install --immutable || yarn install) && cd apps/web && yarn dev -p 3000 -H 0.0.0.0"]
 # CMD ["yarn", "dev", "-p", "3000", "-H", "0.0.0.0"]
 
 

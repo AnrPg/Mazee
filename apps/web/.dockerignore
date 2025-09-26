@@ -1,0 +1,9 @@
+.next
+node_modules
+.yarn/cache
+.yarn/unplugged
+.yarn/install-state.gz
+*.log
+.git
+.gitignore
+.DS_Store
