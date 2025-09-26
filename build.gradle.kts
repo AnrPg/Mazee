@@ -128,6 +128,32 @@ tasks.register<Exec>("composeServiceStop") {
     }
 }
 
+// --- Docker Compose helpers ---
+
+tasks.register<Exec>("composeBuildNoCache") {
+    description = "docker compose build --no-cache --pull"
+    commandLine("docker", "compose", "-f", composeFile, "build", "--no-cache", "--pull")
+}
+
+tasks.register<Exec>("composeUp2") {
+    description = "docker compose up -d --force-recreate"
+    commandLine("docker", "compose", "-f", composeFile, "up", "-d", "--force-recreate")
+}
+
+tasks.register<Exec>("composeLogsApiWebPostgres") {
+    description = "docker compose logs -f api web postgres"
+    // -f = follow; add --no-log-prefix if you want cleaner lines
+    commandLine("docker", "compose", "-f", composeFile, "logs", "-f", "api", "web", "postgres")
+}
+
+tasks.register("rebuildAll") {
+    description = "Build (no cache), up, then follow logs for api/web/postgres"
+    group = "docker"
+    dependsOn("composeBuildNoCache", "composeUp2")
+    finalizedBy("composeLogsApiWebPostgres")
+}
+
+
 // ---------- Sanity: Docker services ----------
 tasks.register<Exec>("sanityDocker") {
     group = composeGroup

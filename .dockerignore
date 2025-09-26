@@ -1,0 +1,28 @@
+# VCS / IDE
+.git
+.gitignore
+.vscode
+.DS_Store
+
+# Node / Yarn caches
+**/node_modules
+.yarn/cache
+.yarn/unplugged
+.yarn/install-state.gz
+npm-debug.log*
+yarn-error.log*
+
+# Next / build outputs
+apps/web/.next
+apps/web/out
+
+# Elixir / Mix build artifacts
+services/api/_build
+services/api/deps
+services/api/erl_crash.dump
+
+# Android / Gradle build outputs
+apps/android/**/build
+
+# Misc large files
+**/*.log

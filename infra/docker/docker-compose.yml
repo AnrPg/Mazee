@@ -65,6 +65,85 @@ services:
       retries: 30
     networks: [mazee_net]
 
+  api:
+    build:
+      context: ../../services/api
+      dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME:-mazee}-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      GUARDIAN_SECRET_KEY: ${GUARDIAN_SECRET_KEY}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      PHX_HOST: ${PHX_HOST}
+      PORT: "4000"
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-dev-meili-key}
+      MONGO_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017
+      MONGO_DB: ${MONGO_DB:-mazee}
+    depends_on:
+      - postgres
+      - meilisearch
+      - mongo
+    ports:
+      - "4000:4000"
+    networks: [mazee_net]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  # === NEW: Next.js Web (apps/web) ===
+  web:
+    build:
+      context: ../../          # <-- repo root
+      dockerfile: apps/web/Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME:-mazee}-web
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Public for browser calls:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000}
+      # Internal (server-side) calls from Next server to Phoenix in the compose network:
+      INTERNAL_API_BASE_URL: http://api:4000
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      HOST: "0.0.0.0"         # ensure Next binds externally
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+      NEXT_CACHE_DIR: /app/apps/web/.next/cache
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    networks: [mazee_net]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    # ⬇️ add/keep your environment if you had any
+    # env_file: .env
+    # ⬇️ bind mount the repo (dev) and persist node_modules
+    volumes:
+      - ../../:/app
+      - web_node_modules:/app/node_modules
+      - web_web_node_modules:/app/apps/web/node_modules
+      - web_next:/app/apps/web/.next           # ⬅️ isolate .next to a docker volume
+    # ⬇️ PERMANENT fix: always install before dev
+    command: >
+      sh -lc "
+        corepack enable &&
+        corepack prepare yarn@4.10.3 --activate &&
+        cd /app &&
+        (yarn install --immutable || yarn install) &&
+        cd /app/apps/web &&
+        yarn dev -p 3000 -H 0.0.0.0
+      "
+
 networks:
   mazee_net:
     driver: bridge
@@ -73,3 +152,6 @@ volumes:
   pg_data:
   meili_data:
   mongo_data:
+  web_node_modules:
+  web_web_node_modules:
+  web_next:

@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: corepack enable && corepack prepare yarn@4.9.2 --activate
+      - run: corepack enable && corepack prepare yarn@4.10.3 --activate
 
       - uses: actions/setup-node@v4
         with:
