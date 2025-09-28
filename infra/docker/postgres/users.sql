@@ -1,3 +1,6 @@
+-- TODO: keep "handle" only in one of users/profiles? (probably profiles, as it's public) considering that one user can have multiple profiles (e.g. priest + admin)
+
+
 -- Prereqs (you already have citext; add pgcrypto for gen_random_uuid and pg_trgm for fast ILIKE)
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS citext;
@@ -19,8 +22,13 @@ BEGIN
   END IF;
 END $$;
 
-CREATE DOMAIN email_addr AS citext
-CHECK (VALUE ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'email_addr') THEN
+      CREATE DOMAIN email_addr AS citext
+        CHECK (VALUE ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+  END IF;
+END $$;
 
 -- Users (UUID PK, enums, constraints)
 CREATE TABLE IF NOT EXISTS app.users (
@@ -102,6 +110,24 @@ CREATE INDEX IF NOT EXISTS profiles_bio_trgm_idx
 -- Profiles: visibility gating (e.g., only public)
 CREATE INDEX IF NOT EXISTS profiles_visibility_idx
   ON app.profiles (visibility, created_at DESC);
+
+CREATE OR REPLACE FUNCTION uniq_roles() RETURNS trigger AS $$
+BEGIN
+  -- Remove duplicates by unnesting → DISTINCT → array_agg
+  NEW.roles := (
+    SELECT array_agg(DISTINCT x ORDER BY x)
+    FROM unnest(NEW.roles) AS t(x)
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_users_roles_uniq ON app.users;
+CREATE TRIGGER trg_users_roles_uniq
+  BEFORE INSERT OR UPDATE ON app.users
+  FOR EACH ROW
+  EXECUTE FUNCTION uniq_roles();
+
 
 -- Smoke insert (unchanged, now with UUID FK)
 -- INSERT INTO app.users (email, password_hash, handle) VALUES ('demo@example.com','hashed_password','anr')

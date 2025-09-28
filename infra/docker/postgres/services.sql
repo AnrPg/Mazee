@@ -1,19 +1,26 @@
 
 
 -- Calendrical / liturgical facets
-CREATE TYPE calendar_style AS ENUM (
-    'new_gregorian',
-    'old_julian');
-CREATE TYPE office AS ENUM (
-    'vespers',
-    'compline',
-    'midnight',
-    'matins',
-    'hours',
-    'typika',
-    'liturgy',
-    'vesperal_liturgy');
-CREATE TYPE period_tag AS ENUM (
+-- calendar_style
+SELECT public.ensure_enum('calendar_style', ARRAY[
+  'new_gregorian',
+  'old_julian'
+]);
+
+-- office
+SELECT public.ensure_enum('office', ARRAY[
+  'vespers',
+  'compline',
+  'midnight',
+  'matins',
+  'hours',
+  'typika',
+  'liturgy',
+  'vesperal_liturgy'
+]);
+
+-- period_tag
+SELECT public.ensure_enum('period_tag', ARRAY[
   'menaion',
   'triodion_pre_lent',
   'triodion_great_lent',
@@ -28,37 +35,49 @@ CREATE TYPE period_tag AS ENUM (
   'fast_apostles',
   'fast_dormition',
   'octoechos_week'
-);
-CREATE TYPE source_book AS ENUM (
-    'menaion',
-    'octoechos',
-    'triodion',
-    'pentecostarion',
-    'psalter',
-    'other');
-CREATE TYPE commemoration_type AS ENUM (
-    'great_feast',
-    'saint',
-    'temple_dedication',
-    'local',
-    'other');
-CREATE TYPE feast_rank AS ENUM (
-  'great_feast',          -- Δεσποτικές/Θεομητορικές 12ορτες
-  'vigil',                -- ἀγρυπνία
-  'polyeleos',            -- πολυέλεος
-  'great_doxology',       -- δοξολογία
-  'six_stichera',         -- ἓξι στιχηρά
-  'simple'                -- ἁπλή μνήμη Αγίου
-);
-CREATE TYPE fasting_level AS ENUM (
+]);
+
+-- source_book
+SELECT public.ensure_enum('source_book', ARRAY[
+  'menaion',
+  'octoechos',
+  'triodion',
+  'pentecostarion',
+  'psalter',
+  'other'
+]);
+
+-- commemoration_type
+SELECT public.ensure_enum('commemoration_type', ARRAY[
+  'great_feast',
+  'saint',
+  'temple_dedication',
+  'local',
+  'other'
+]);
+
+-- feast_rank
+SELECT public.ensure_enum('feast_rank', ARRAY[
+  'great_feast',      -- Δεσποτικές/Θεομητορικές 12ορτες
+  'vigil',            -- ἀγρυπνία
+  'polyeleos',        -- πολυέλεος
+  'great_doxology',   -- δοξολογία
+  'six_stichera',     -- ἓξι στιχηρά
+  'simple'            -- ἁπλή μνήμη Αγίου
+]);
+
+-- fasting_level
+SELECT public.ensure_enum('fasting_level', ARRAY[
   'fast_free',
   'dairy_allowed',
   'fish_allowed',
   'wine_oil_allowed',
   'strict',
   'unknown'
-);
-CREATE TYPE hymn_type_key AS ENUM (
+]);
+
+-- hymn_type_key
+SELECT public.ensure_enum('hymn_type_key', ARRAY[
   'apolytikion',
   'kontakion',
   'exaposteilarion',
@@ -85,7 +104,7 @@ CREATE TYPE hymn_type_key AS ENUM (
   'anavathmoi',
   'evlogitaria',
   'exapsalmos'
-);
+]);
 
 -- Table to hold computed Pascha dates and related info
 -- for use in determining other movable feasts
@@ -105,7 +124,7 @@ CREATE TABLE IF NOT EXISTS pascha (
   julian_to_greg_gap integer NOT NULL  -- computed difference in days for that year/date
 );
 
--- 1) Meeus (Julian) → Julian month/day 
+-- 1) Meeus (Julian) → Julian month/day
 CREATE OR REPLACE FUNCTION orthodox_pascha_julian(y integer)
 RETURNS date LANGUAGE plpgsql AS $$
 DECLARE
@@ -211,7 +230,7 @@ CREATE TABLE synaxarion_event (
 
   -- Dating
   is_movable                    boolean NOT NULL DEFAULT false,
-  movable_rule                  text,       -- e.g. 'P+50', 'SunAfter(09-14)' (see §3) 
+  movable_rule                  text,       -- e.g. 'P+50', 'SunAfter(09-14)' (see §3)
   fixed_mday                    text,       -- 'MM-DD' if fixed
   relation_tag                  text,       -- 'forefeast_of','afterfeast_of','apodosis_of','synaxis_of'
   related_synaxarion_event      bigserial,  -- id this relates to
@@ -221,9 +240,9 @@ CREATE TABLE synaxarion_event (
   stichera_count    smallint,   -- e.g. 6
   canon_odes        smallint,   -- e.g. 6/9/12/15
   default_tone      smallint,   -- if the event has its own tone
-  forefeast_days    smallint,       
-  afterfeast_days   smallint,       
-  apodosis_offset   smallint,       
+  forefeast_days    smallint,
+  afterfeast_days   smallint,
+  apodosis_offset   smallint,
 
   -- Text shortcuts (optional)
   apolytikion_ref   text,
@@ -231,7 +250,7 @@ CREATE TABLE synaxarion_event (
   notes             text
 );
 
-CREATE INDEX ON synaxarion_event (synaxarion_day_id, is_primary);
+CREATE INDEX ON synaxarion_event (synaxarion_day_id);
 CREATE INDEX ON synaxarion_event (fixed_mday);
 CREATE INDEX ON synaxarion_event (name_gr);
 
@@ -264,4 +283,3 @@ CREATE TABLE hymn_ref (
   label         text,                              -- human-friendly title
   meta          jsonb                              -- optional (odes, meter, author, etc.)
 );
-
