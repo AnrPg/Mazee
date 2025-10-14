@@ -137,4 +137,25 @@ class ApiClient {
   }
 }
 
+// ensure the API wrapper includes the token if present
+export async function api(path: string, options: RequestInit = {}) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null
+
+  const headers = new Headers(options.headers || {})
+  headers.set("Content-Type", "application/json")
+  if (token) headers.set("Authorization", `Bearer ${token}`)
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
+    ...options,
+    headers,
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`API ${res.status}: ${text}`)
+  }
+
+  return res.json()
+}
+
 export const apiClient = new ApiClient(API_BASE_URL)

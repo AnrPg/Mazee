@@ -24,20 +24,38 @@ export const roleDescriptions: Record<UserRole, string> = {
   admin: "System administrator",
 }
 
-export function hasPermission(userRoles: UserRole[], requiredRole: UserRole): boolean {
-  const userMaxLevel = Math.max(...userRoles.map((role) => roleHierarchy[role]))
-  const requiredLevel = roleHierarchy[requiredRole]
-  return userMaxLevel >= requiredLevel
+export function hasPermission(userRoles: UserRole[] = [], requiredRole: UserRole): boolean {
+  // No roles → no permissions
+  if (!Array.isArray(userRoles) || userRoles.length === 0) return false;
+
+  const userMaxLevel = Math.max(
+    ...userRoles.map((role) => (roleHierarchy[role] ?? Number.NEGATIVE_INFINITY))
+  );
+  const requiredLevel = roleHierarchy[requiredRole] ?? Number.POSITIVE_INFINITY;
+
+  return userMaxLevel >= requiredLevel;
 }
 
-export function getHighestRole(roles: UserRole[]): UserRole {
-  return roles.reduce((highest, current) => {
-    return roleHierarchy[current] > roleHierarchy[highest] ? current : highest
-  }, roles[0] || "user")
+export function getHighestRole(roles: UserRole[] = []): UserRole {
+  if (!Array.isArray(roles) || roles.length === 0) return "user";
+  // Pick the role with the highest level; unknown roles are treated as very low
+  return roles.reduce<UserRole>((highest, current) => {
+    const hi = roleHierarchy[highest] ?? Number.NEGATIVE_INFINITY;
+    const cu = roleHierarchy[current] ?? Number.NEGATIVE_INFINITY;
+    return cu > hi ? current : highest;
+  }, "user");
 }
 
-export function canManageUser(managerRoles: UserRole[], targetRoles: UserRole[]): boolean {
-  const managerLevel = Math.max(...managerRoles.map((role) => roleHierarchy[role]))
-  const targetLevel = Math.max(...targetRoles.map((role) => roleHierarchy[role]))
-  return managerLevel > targetLevel
+export function canManageUser(managerRoles: UserRole[] = [], targetRoles: UserRole[] = []): boolean {
+  if (!Array.isArray(managerRoles) || managerRoles.length === 0) return false;
+  if (!Array.isArray(targetRoles) || targetRoles.length === 0) return true; // empty target → manageable
+
+  const managerLevel = Math.max(
+    ...managerRoles.map((role) => (roleHierarchy[role] ?? Number.NEGATIVE_INFINITY))
+  );
+  const targetLevel = Math.max(
+    ...targetRoles.map((role) => (roleHierarchy[role] ?? Number.NEGATIVE_INFINITY))
+  );
+
+  return managerLevel > targetLevel;
 }

@@ -22,42 +22,84 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for stored token on mount
-    const storedToken = localStorage.getItem("auth_token")
-    const storedUser = localStorage.getItem("auth_user")
-
-    if (storedToken && storedUser) {
+    (async () => {
       try {
-        setToken(storedToken)
-        setUser(JSON.parse(storedUser))
-        apiClient.setToken(storedToken)
-      } catch (error) {
-        // Clear invalid stored data
-        localStorage.removeItem("auth_token")
-        localStorage.removeItem("auth_user")
+        const storedToken = localStorage.getItem("auth_token")
+        const storedUser = localStorage.getItem("auth_user")
+
+        if (storedToken && storedUser) {
+          apiClient.setToken(storedToken)
+
+          // Try to refresh the user from /me so roles are current & ensured
+          let freshUser = null as any
+          try {
+            freshUser = await fetchMe(storedToken)
+          } catch {
+            // fallback to stored snapshot if /me fails
+            freshUser = JSON.parse(storedUser)
+          }
+
+          const roles = Array.isArray(freshUser?.roles) ? freshUser.roles : []
+          const finalUser = { ...freshUser, roles }
+
+          setToken(storedToken)
+          setUser(finalUser)
+
+          // keep storage in sync (optional but safe)
+          localStorage.setItem("auth_user", JSON.stringify(finalUser))
+        }
+      } finally {
+        setIsLoading(false)
       }
-    }
-    setIsLoading(false)
+    })()
   }, [])
+
+
+  // --- helper: fetch current user (guarantee roles come from API) ---
+  const fetchMe = async (token: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/auth/me`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!res.ok) throw new Error(`ME ${res.status}`)
+    return res.json()
+  }
+
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await apiClient.login(email, password)
-      if (response.error || !response.data) {
-        return false
+      if (response.error || !response.data) return false
+
+      // Your api.ts types say: { user, token }
+      const accessToken: string | null = response.data.token ?? null
+      if (!accessToken) return false
+
+      apiClient.setToken(accessToken)
+
+      // Use the payload's user; if roles missing, fetch /me
+      let userData: any = response.data.user ?? null
+      if (!Array.isArray(userData?.roles)) {
+        try {
+          userData = await fetchMe(accessToken)
+        } catch {
+          // keep payload user if /me fails
+        }
       }
+      const roles = Array.isArray(userData?.roles) ? userData.roles : []
+      const finalUser = { ...userData, roles }
 
-      const { user: userData, token: authToken } = response.data
-      setUser(userData)
-      setToken(authToken)
-      apiClient.setToken(authToken)
+      setUser(finalUser)
+      setToken(accessToken)
 
-      // Store in localStorage
-      localStorage.setItem("auth_token", authToken)
-      localStorage.setItem("auth_user", JSON.stringify(userData))
+      localStorage.setItem("auth_token", accessToken)
+      localStorage.setItem("auth_user", JSON.stringify(finalUser))
 
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }
@@ -65,21 +107,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (userData: any): Promise<boolean> => {
     try {
       const response = await apiClient.register(userData)
-      if (response.error || !response.data) {
-        return false
+      if (response.error || !response.data) return false
+
+      const accessToken: string | null = response.data.token ?? null
+      if (!accessToken) return false
+
+      apiClient.setToken(accessToken)
+
+      let newUser: any = response.data.user ?? null
+      if (!Array.isArray(newUser?.roles)) {
+        try {
+          newUser = await fetchMe(accessToken)
+        } catch {
+          // keep payload user if /me fails
+        }
       }
+      const roles = Array.isArray(newUser?.roles) ? newUser.roles : []
+      const finalUser = { ...newUser, roles }
 
-      const { user: newUser, token: authToken } = response.data
-      setUser(newUser)
-      setToken(authToken)
-      apiClient.setToken(authToken)
+      setUser(finalUser)
+      setToken(accessToken)
 
-      // Store in localStorage
-      localStorage.setItem("auth_token", authToken)
-      localStorage.setItem("auth_user", JSON.stringify(newUser))
+      localStorage.setItem("auth_token", accessToken)
+      localStorage.setItem("auth_user", JSON.stringify(finalUser))
 
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

@@ -15,6 +15,8 @@ defmodule MazeeWeb.Router do
   scope "/v1", MazeeWeb do
     pipe_through [:api]
 
+    get "/handles/check", HandleController, :check
+
     # Public auth endpoints
     scope "/auth" do
       post "/register", AuthController, :register
@@ -25,6 +27,10 @@ defmodule MazeeWeb.Router do
     # Protected endpoints (JWT required)
     scope "/" do
       pipe_through [:auth]
+
+      scope "/auth" do
+        get "/me", AuthController, :me
+      end
 
       # Admin Users CRUD (controller enforces admin role)
       get "/users", UsersController, :index

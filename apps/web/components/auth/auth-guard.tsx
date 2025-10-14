@@ -14,49 +14,51 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children, requiredRole, fallback }: AuthGuardProps) {
-  const { user, isLoading } = useAuth()
+  const { user, loading, status } = useAuth() as {
+    user?: { roles?: UserRole[] } | null
+    loading?: boolean
+    status?: "loading" | "authenticated" | "unauthenticated"
+  }
 
+  const isLoading = loading ?? status === "loading"
+
+  // 1) While auth state is loading, show a neutral placeholder (prevents flicker and crashes)
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <Shield className="h-12 w-12 mx-auto mb-4" />
+            <CardTitle className="font-serif">Checking access…</CardTitle>
+            <CardDescription>Please wait.</CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     )
   }
 
-  if (!user) {
-    return (
-      fallback || (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <CardTitle className="font-serif">Authentication Required</CardTitle>
-              <CardDescription>You need to be signed in to access this page.</CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
+  // 2) If a role is required, verify against a defined roles array
+  if (requiredRole) {
+    const roles: UserRole[] = Array.isArray(user?.roles) ? (user!.roles as UserRole[]) : []
+    if (!hasPermission(roles, requiredRole)) {
+      return (
+        fallback || (
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader className="text-center">
+                <AlertTriangle className="h-12 w-12 mx-auto text-destructive mb-4" />
+                <CardTitle className="font-serif">Access Denied</CardTitle>
+                <CardDescription>
+                  You don&apos;t have permission to access this page. Required role: {requiredRole}
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        )
       )
-    )
+    }
   }
 
-  if (requiredRole && !hasPermission(user.roles, requiredRole)) {
-    return (
-      fallback || (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <AlertTriangle className="h-12 w-12 mx-auto text-destructive mb-4" />
-              <CardTitle className="font-serif">Access Denied</CardTitle>
-              <CardDescription>
-                You don't have permission to access this page. Required role: {requiredRole}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      )
-    )
-  }
-
+  // 3) No required role or permission granted
   return <>{children}</>
 }
