@@ -111,22 +111,55 @@ CREATE INDEX IF NOT EXISTS profiles_bio_trgm_idx
 CREATE INDEX IF NOT EXISTS profiles_visibility_idx
   ON app.profiles (visibility, created_at DESC);
 
-CREATE OR REPLACE FUNCTION uniq_roles() RETURNS trigger AS $$
+DROP TRIGGER IF EXISTS trg_users_roles_uniq ON app.users;
+DROP TRIGGER IF EXISTS trg_users_roles_norm ON app.users;
+DO $$
 BEGIN
-  -- Remove duplicates by unnesting → DISTINCT → array_agg
-  NEW.roles := (
-    SELECT array_agg(DISTINCT x ORDER BY x)
-    FROM unnest(NEW.roles) AS t(x)
-  );
+  IF EXISTS (
+    SELECT 1 FROM pg_proc
+    WHERE proname = 'uniq_roles' AND pg_function_is_visible(oid)
+  ) THEN
+    DROP FUNCTION app.uniq_roles();
+  END IF;
+END $$;
+
+-- Function: normalize roles by removing duplicates and sorting for stability
+CREATE OR REPLACE FUNCTION app.norm_roles() RETURNS trigger AS $$
+BEGIN
+  NEW.roles :=
+    COALESCE(
+      (SELECT array_agg(DISTINCT r ORDER BY r) FROM unnest(NEW.roles) AS r),
+      '{}'::app.user_role[]
+    );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_users_roles_uniq ON app.users;
-CREATE TRIGGER trg_users_roles_uniq
-  BEFORE INSERT OR UPDATE ON app.users
-  FOR EACH ROW
-  EXECUTE FUNCTION uniq_roles();
+-- Trigger: fire on INSERT or only when 'roles' is updated
+CREATE TRIGGER trg_users_roles_norm
+BEFORE INSERT OR UPDATE OF roles ON app.users
+FOR EACH ROW
+EXECUTE FUNCTION app.norm_roles();
+
+
+SELECT tg.tgname AS trigger, p.proname AS function, c.relname AS table_name
+FROM pg_trigger tg
+JOIN pg_class c ON c.oid = tg.tgrelid
+JOIN pg_proc  p ON p.oid = tg.tgfoid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'app' AND c.relname = 'users' AND NOT tg.tgisinternal
+ORDER BY 1;
+
+-- Profiles
+SELECT tg.tgname AS trigger, p.proname AS function, c.relname AS table_name
+FROM pg_trigger tg
+JOIN pg_class c ON c.oid = tg.tgrelid
+JOIN pg_proc  p ON p.oid = tg.tgfoid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'app' AND c.relname = 'profiles' AND NOT tg.tgisinternal
+ORDER BY 1;
+
+
 
 
 -- Smoke insert (unchanged, now with UUID FK)
