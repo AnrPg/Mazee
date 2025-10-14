@@ -123,7 +123,7 @@ export function UserEditDialog({ user, open, onOpenChange }: UserEditDialogProps
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!canManageThisUser}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={!canManageThisUser}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
