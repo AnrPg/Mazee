@@ -150,7 +150,7 @@ tasks.register("rebuildAll") {
     description = "Build (no cache), up, then follow logs for api/web/postgres"
     group = "docker"
     dependsOn("composeBuildNoCache", "composeUp2")
-    finalizedBy("composeLogsApiWebPostgres")
+    // finalizedBy("composeLogsApiWebPostgres")
 }
 
 
