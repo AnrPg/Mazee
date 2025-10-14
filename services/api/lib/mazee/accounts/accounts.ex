@@ -18,6 +18,33 @@ defmodule Mazee.Accounts do
   alias Mazee.Accounts.{Credential, User}
   alias Mazee.Repo
 
+  # ============ Handles ============
+
+  @doc "True if no User uses the given handle."
+  def handle_available?(handle) when is_binary(handle) do
+    from(u in User, where: u.handle == ^handle, select: 1)
+    |> Repo.exists?()
+    |> Kernel.not()
+  end
+
+  @doc """
+  Suggest a close alternative (tries `<handle>_`, `<handle>.<n>`, `<handle><n>`).
+  """
+  def suggest_handle(base) do
+    candidates =
+      Stream.concat([
+        ["#{base}_"],
+        Stream.map(1..99, &"#{base}.#{&1}"),
+        Stream.map(1..999, &"#{base}#{&1}")
+      ])
+      |> Stream.take(1200)
+
+    case Enum.find(candidates, &handle_available?/1) do
+      nil -> base <> "_" <> Integer.to_string(:rand.uniform(9999))
+      good -> good
+    end
+  end
+
   # ============ Queries ============
 
   @doc "Get a user by id or raise if not found."
