@@ -4,6 +4,7 @@ defmodule MazeeWeb.AuthController do
 
     POST /v1/auth/register
     POST /v1/auth/login
+    GET /v1/auth/me
 
   Returns:
     {
@@ -79,6 +80,15 @@ defmodule MazeeWeb.AuthController do
     end
   end
 
+  # =========== GET /v1/auth/me ===========
+  def me(conn, _params) do
+    case MazeeWeb.Auth.Guardian.Plug.current_resource(conn) do
+      %{} = user -> json(conn, profile_view(user))
+      _ -> conn |> put_status(:unauthorized) |> json(%{error: %{code: "unauthorized"}})
+    end
+  end
+
+
   # -------------------- helpers --------------------
 
   # Ensure a body key exists and is non-empty (after trimming).
@@ -95,22 +105,22 @@ defmodule MazeeWeb.AuthController do
 
   # Issue JWTs and format the unified response payload.
   defp tokens_payload(user) do
-    with {:ok, access, claims} <- Guardian.encode_and_sign(user, %{}, token_type: "access"),
-         {:ok, refresh, _var} <- Guardian.encode_and_sign(user, %{}, token_type: "refresh"),
-         exp when is_integer(exp) <- Map.get(claims, "exp"),
-         iat when is_integer(iat) <- Map.get(claims, "iat") do
-      {:ok,
-       %{
-         user: profile_view(user),
-         tokens: %{
-           accessToken: access,
-           refreshToken: refresh,
-           expiresInSec: exp - iat
-         }
-       }}
-    else
-      _var -> {:error, :token_issue_failed}
-    end
+    with {:ok, access, claims} <- Guardian.encode_and_sign(user, %{roles: user.roles}, token_type: "access"),
+      {:ok, refresh, _}     <- Guardian.encode_and_sign(user, %{roles: user.roles}, token_type: "refresh"),
+      exp when is_integer(exp) <- Map.get(claims, "exp"),
+      iat when is_integer(iat) <- Map.get(claims, "iat") do
+    {:ok,
+    %{
+      user: profile_view(user),
+      tokens: %{
+        accessToken: access,
+        refreshToken: refresh,
+        expiresInSec: exp - iat
+      }
+    }}
+  else
+    _ -> {:error, :token_issue_failed}
+  end
   end
 
   # Minimal "Profile" shape from User (strict subset).
@@ -118,8 +128,12 @@ defmodule MazeeWeb.AuthController do
   defp profile_view(u) do
     %{
       id: u.id,
+      email: u.email,
       handle: u.handle,
-      displayName: u.handle
+      displayName: u.handle,
+      roles: u.roles,
+      status: to_string(u.status)
     }
   end
+
 end
