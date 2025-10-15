@@ -19,25 +19,35 @@ defmodule MazeeWeb.UsersController do
   def index(conn, params) do
     limit =
       case Map.get(params, "limit") do
-        nil -> 20
+        nil ->
+          20
+
         val when is_binary(val) ->
           case Integer.parse(val) do
             {num, _} -> min(num, 100)
             :error -> 20
           end
-        val when is_integer(val) -> min(val, 100)
-        _ -> 20
+
+        val when is_integer(val) ->
+          min(val, 100)
+
+        _ ->
+          20
       end
 
     after_id =
       case Map.get(params, "after") do
-        nil -> nil
+        nil ->
+          nil
+
         val when is_binary(val) ->
           case Integer.parse(val) do
             {num, _} -> num
             :error -> nil
           end
-        _ -> nil
+
+        _ ->
+          nil
       end
 
     users = Accounts.list_users(limit, after_id)
@@ -47,7 +57,6 @@ defmodule MazeeWeb.UsersController do
       next: (List.last(users) && List.last(users).id) || nil
     })
   end
-
 
   # =========== GET /v1/users/:userId ===========
   def show(conn, %{"userId" => id}) do

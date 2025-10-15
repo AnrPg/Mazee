@@ -28,5 +28,4 @@ defmodule Mazee.Accounts.Profile do
     |> validate_format(:handle, @handle_regex, message: "must match ^[a-z0-9_.]{3,30}$")
     |> unique_constraint(:handle)
   end
-
 end

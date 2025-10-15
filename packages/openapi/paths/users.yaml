@@ -9,7 +9,7 @@ users:
       "403": { $ref: "../components/responses.yaml#/Forbidden" }
     x-pagination:
       description: |
-        `limit` is maximum number of users to return (clamped to 100).  
+        `limit` is maximum number of users to return (clamped to 100).
         `after` is the user ID after which to fetch.
   post:
     summary: Create user (admin/import)

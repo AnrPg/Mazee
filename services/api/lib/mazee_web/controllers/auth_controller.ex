@@ -88,7 +88,6 @@ defmodule MazeeWeb.AuthController do
     end
   end
 
-
   # -------------------- helpers --------------------
 
   # Ensure a body key exists and is non-empty (after trimming).
@@ -105,22 +104,24 @@ defmodule MazeeWeb.AuthController do
 
   # Issue JWTs and format the unified response payload.
   defp tokens_payload(user) do
-    with {:ok, access, claims} <- Guardian.encode_and_sign(user, %{roles: user.roles}, token_type: "access"),
-      {:ok, refresh, _}     <- Guardian.encode_and_sign(user, %{roles: user.roles}, token_type: "refresh"),
-      exp when is_integer(exp) <- Map.get(claims, "exp"),
-      iat when is_integer(iat) <- Map.get(claims, "iat") do
-    {:ok,
-    %{
-      user: profile_view(user),
-      tokens: %{
-        accessToken: access,
-        refreshToken: refresh,
-        expiresInSec: exp - iat
-      }
-    }}
-  else
-    _ -> {:error, :token_issue_failed}
-  end
+    with {:ok, access, claims} <-
+           Guardian.encode_and_sign(user, %{roles: user.roles}, token_type: "access"),
+         {:ok, refresh, _} <-
+           Guardian.encode_and_sign(user, %{roles: user.roles}, token_type: "refresh"),
+         exp when is_integer(exp) <- Map.get(claims, "exp"),
+         iat when is_integer(iat) <- Map.get(claims, "iat") do
+      {:ok,
+       %{
+         user: profile_view(user),
+         tokens: %{
+           accessToken: access,
+           refreshToken: refresh,
+           expiresInSec: exp - iat
+         }
+       }}
+    else
+      _ -> {:error, :token_issue_failed}
+    end
   end
 
   # Minimal "Profile" shape from User (strict subset).
@@ -135,5 +136,4 @@ defmodule MazeeWeb.AuthController do
       status: to_string(u.status)
     }
   end
-
 end
