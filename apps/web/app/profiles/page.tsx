@@ -11,7 +11,7 @@ export default function Page() {
   const [searchQuery, setSearchQuery] = useState("")
 
   return (
-    <AuthGuard requiredRole="moderator">
+    <AuthGuard>
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto py-8 px-4">
@@ -20,7 +20,7 @@ export default function Page() {
             <div className="flex flex-col gap-4">
               <div>
                 <h1 className="text-4xl font-serif font-bold text-balance">Profile Management</h1>
-                <p className="text-muted-foreground text-pretty">Browse and manage user profiles for Orthodox Social</p>
+                <p className="text-muted-foreground text-pretty">Browse and manage user profiles for Mazee</p>
               </div>
             </div>
 
