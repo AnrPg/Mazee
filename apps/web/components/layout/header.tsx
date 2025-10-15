@@ -24,7 +24,7 @@ export function Header() {
             <span className="font-serif font-bold text-xl">Mazee</span>
           </Link>
 
-          {user && (
+          {user ? (
             <nav className="flex items-center gap-4">
               {canManageUsers && (
                 <>
@@ -42,7 +42,17 @@ export function Header() {
                   </Link>
                 </>
               )}
+              <UserMenu /> {/* keeps your logged-in dropdown */}
             </nav>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Button asChild variant="ghost">
+                <Link href="/auth">Sign in</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/signup">Sign up</Link>
+              </Button>
+            </div>
           )}
         </div>
 

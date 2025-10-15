@@ -640,11 +640,13 @@ __metadata:
     "@tailwindcss/postcss": "npm:^4.0.0"
     "@tanstack/react-query": "npm:^5.59.0"
     "@tanstack/react-query-devtools": "npm:^5.59.0"
+    "@types/canvas-confetti": "npm:^1.5.2"
     "@types/node": "npm:^20.14.11"
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
     "@vercel/analytics": "npm:^1.0.4"
     autoprefixer: "npm:^10.4.20"
+    canvas-confetti: "npm:^1.9.3"
     class-variance-authority: "npm:^0.7.0"
     clsx: "npm:^2.1.1"
     eslint: "npm:^9.11.0"
@@ -2158,6 +2160,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/canvas-confetti@npm:^1.5.2":
+  version: 1.9.0
+  resolution: "@types/canvas-confetti@npm:1.9.0"
+  checksum: 10/7c7423972465d21fc70a7842091735c51875bb7b4466bb623f11462de247272497c5e4a668aad6033e4bf5be3aaf0b57b059c9b26ac02592f4e02df423b86982
+  languageName: node
+  linkType: hard
+
 "@types/estree@npm:^1.0.6":
   version: 1.0.8
   resolution: "@types/estree@npm:1.0.8"
@@ -3038,6 +3047,13 @@ __metadata:
   version: 1.0.30001745
   resolution: "caniuse-lite@npm:1.0.30001745"
   checksum: 10/1b83fcce50ba1548046610683b12810357156baf7878edc538652290ea2eaff3fbca81f33985180040a06f4964db4233117e39efc4d0a11b21ebab57b78fcfc2
+  languageName: node
+  linkType: hard
+
+"canvas-confetti@npm:^1.9.3":
+  version: 1.9.3
+  resolution: "canvas-confetti@npm:1.9.3"
+  checksum: 10/50378c45a10030f0e6c5d2e93972d6e01170dd197b74ef150dcc2ef0166c8e3eb600ea0e930cf923143be6ae4c7ff15ccf74fb6c347a177e6aa4de966afcb610
   languageName: node
   linkType: hard
 

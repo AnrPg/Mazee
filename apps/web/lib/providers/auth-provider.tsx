@@ -74,8 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await apiClient.login(email, password)
       if (response.error || !response.data) return false
 
-      // Your api.ts types say: { user, token }
-      const accessToken: string | null = response.data.token ?? null
+      // Backend returns { user, tokens: { accessToken, ... } }
+      const accessToken: string | null = response.data.tokens?.accessToken ?? null
       if (!accessToken) return false
 
       apiClient.setToken(accessToken)
@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await apiClient.register(userData)
       if (response.error || !response.data) return false
 
-      const accessToken: string | null = response.data.token ?? null
+      const accessToken: string | null = response.data.tokens?.accessToken ?? null
       if (!accessToken) return false
 
       apiClient.setToken(accessToken)

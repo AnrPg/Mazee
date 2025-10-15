@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/lib/providers/auth-provider"
 import { toast } from "@/lib/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,10 +21,12 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 interface LoginFormProps {
-  onSuccess?: () => void
+  // onSuccess is optional and may be async; parent will handle navigation (redirect)
+  onSuccess?: () => void | Promise<void>
 }
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
+  const router = useRouter()
   const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,7 +48,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           title: "Welcome back!",
           description: "You have been successfully logged in.",
         })
-        onSuccess?.()
+        // Let the parent handle redirect/navigation after a successful login.
+        // If the parent provided an async handler, await it so callers can perform
+        // additional work before navigation (or perform navigation themselves).
+        if (onSuccess) await onSuccess()
+        else router.replace("/dashboard")
+        return
       } else {
         toast({
           title: "Login failed",

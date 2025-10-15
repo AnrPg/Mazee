@@ -116,17 +116,15 @@ class ApiClient {
   }
 
   // ===== Auth (expects /v1/auth/... thanks to base) =====
-  async login(email: string, password: string): Promise<ApiResponse<{ user: UserWithProfile; token: string }>> {
-    return this.request("/auth/login", {
+  async login(email: string, password: string ): Promise<ApiResponse<{ user: UserWithProfile; tokens: { accessToken: string; refreshToken: string; expiresInSec: number } }>> {
+     return this.request("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     })
   }
 
-  async register(
-    userData: CreateUserRequest & { password: string },
-  ): Promise<ApiResponse<{ user: UserWithProfile; token: string }>> {
-    return this.request("/auth/register", {
+  async register(userData: CreateUserRequest & { password: string }): Promise<ApiResponse<{ user: UserWithProfile; tokens: { accessToken: string; refreshToken: string; expiresInSec: number } }>> {
+     return this.request("/auth/register", {
       method: "POST",
       body: JSON.stringify(userData),
     })
@@ -139,7 +137,7 @@ class ApiClient {
 
 // ensure the API wrapper includes the token if present
 export async function api(path: string, options: RequestInit = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
 
   const headers = new Headers(options.headers || {})
   headers.set("Content-Type", "application/json")

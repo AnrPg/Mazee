@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/lib/providers/auth-provider"
 import { useHandleAvailability } from "@/lib/hooks/use-profiles"
 import { toast } from "@/lib/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 const registerSchema = z
   .object({
@@ -39,10 +40,11 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>
 
 interface RegisterFormProps {
-  onSuccess?: () => void
+  onSuccess?: () => void | Promise<void>
 }
 
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const router = useRouter()
   const { register } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -87,7 +89,12 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           title: "Account created!",
           description: "Welcome to Mazee. Please verify your email address.",
         })
-        onSuccess?.()
+        // Let the parent handle redirect/navigation after a successful signup.
+        // If the parent provided an async handler, await it so callers can perform
+        // additional work before navigation (or perform navigation themselves).
+        if (onSuccess) await onSuccess()
+        else router.replace("/")
+        return
       } else {
         toast({
           title: "Registration failed",
