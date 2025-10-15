@@ -13,19 +13,41 @@ defmodule MazeeWeb.UsersController do
   alias Mazee.Accounts
   alias MazeeWeb.Auth.Guardian
 
-  plug :require_admin
+  # plug :require_admin
 
   # =========== GET /v1/users ===========
   def index(conn, params) do
-    limit = params |> Map.get("limit", "20") |> String.to_integer() |> min(100)
-    after_id = Map.get(params, "after")
+    limit =
+      case Map.get(params, "limit") do
+        nil -> 20
+        val when is_binary(val) ->
+          case Integer.parse(val) do
+            {num, _} -> min(num, 100)
+            :error -> 20
+          end
+        val when is_integer(val) -> min(val, 100)
+        _ -> 20
+      end
+
+    after_id =
+      case Map.get(params, "after") do
+        nil -> nil
+        val when is_binary(val) ->
+          case Integer.parse(val) do
+            {num, _} -> num
+            :error -> nil
+          end
+        _ -> nil
+      end
+
     users = Accounts.list_users(limit, after_id)
 
     json(conn, %{
-      items: Enum.map(users, &user_admin_view/1),
+      data: Enum.map(users, &user_admin_view/1),
       next: (List.last(users) && List.last(users).id) || nil
     })
   end
+
 
   # =========== GET /v1/users/:userId ===========
   def show(conn, %{"userId" => id}) do

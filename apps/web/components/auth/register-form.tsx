@@ -85,7 +85,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       if (success) {
         toast({
           title: "Account created!",
-          description: "Welcome to Orthodox Social. Please verify your email address.",
+          description: "Welcome to Mazee. Please verify your email address.",
         })
         onSuccess?.()
       } else {
@@ -122,7 +122,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
-        <CardTitle className="font-serif text-2xl">Join Orthodox Social</CardTitle>
+        <CardTitle className="font-serif text-2xl">Join Mazee</CardTitle>
         <CardDescription>Create your account to connect with the Orthodox community</CardDescription>
       </CardHeader>
       <CardContent>

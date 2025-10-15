@@ -34,7 +34,7 @@ RUN mix release
 FROM debian:bookworm-slim AS runner
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      openssl ca-certificates curl \
+      openssl ca-certificates postgresql-client curl \
     && rm -rf /var/lib/apt/lists/*
 
 ENV LANG=C.UTF-8 MIX_ENV=prod SHELL=/bin/bash HOME=/home/app

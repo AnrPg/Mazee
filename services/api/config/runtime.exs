@@ -20,8 +20,12 @@ config :mazee, Mazee.Repo,
   ssl: String.downcase(System.get_env("DB_SSL") || "false") == "true",
   migration_primary_key: [type: :binary_id],
   migration_timestamps: [type: :utc_datetime_usec],
+  timeout: 15_000,
+  queue_target: 5_000,
   # IMPORTANT: our tables live under the "app" schema by default
-  default_options: [search_path: "app,public"]
+  default_options: [search_path: "app,public"],
+  socket_options: [:inet],
+  ssl: false
 
 # --- Meilisearch ---
 config :mazee, :meili,

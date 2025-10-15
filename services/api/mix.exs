@@ -24,7 +24,7 @@ defmodule Mazee.MixProject do
   # 👇 keep this PRIVATE function **inside** the module
   defp deps do
     [
-      {:phoenix, "~> 1.7"},
+      {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.4"},
       {:plug_cowboy, "~> 2.6"},
       {:ecto_sql, "~> 3.10"},
@@ -34,7 +34,8 @@ defmodule Mazee.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:argon2_elixir, "~> 4.0"},
       {:guardian, "~> 2.0"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:phoenix_view, "~> 2.0"}
     ]
   end
 

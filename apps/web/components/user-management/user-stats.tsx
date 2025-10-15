@@ -26,7 +26,7 @@ export function UserStats() {
     )
   }
 
-  const users: User[] = usersData?.items || []
+  const users: User[] = usersData?.data || []
 
   const totalUsers = users.length
   const activeUsers = users.filter((user) => user.status === "active").length

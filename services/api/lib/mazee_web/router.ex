@@ -14,6 +14,7 @@ defmodule MazeeWeb.Router do
   # ---------- Routes ----------
   scope "/v1", MazeeWeb do
     pipe_through [:api]
+    get "/health", HealthController, :index
 
     get "/handles/check", HandleController, :check
 

@@ -232,6 +232,20 @@ tasks.register<Exec>("sanityDocker") {
             | grep -q '^1${'$'}' || { echo "::error::Mongo ping failed"; exit 1; }
         fi
 
+        # API health
+        if $composeCmd ps api >/dev/null 2>&1; then
+        echo "Checking API..."
+        curl -fsS "http://localhost:4000/v1/health" | grep -q '"status":"ok"' \
+            || { echo "::error::API /v1/health not OK"; exit 1; }
+        fi
+
+        # Web health (via /api/health)
+        if $composeCmd ps web >/dev/null 2>&1; then
+          echo "Checking Web..."
+          curl -fsS "http://localhost:3000/api/health" | grep -q '"status":"ok"' \
+            || { echo "::error::Web /api/health not OK"; exit 1; }
+        fi
+
         echo "Docker sanity: OK"
         BASH
 

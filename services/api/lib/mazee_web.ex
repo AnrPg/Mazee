@@ -33,6 +33,15 @@ defmodule MazeeWeb do
     end
   end
 
+  def view do
+    quote do
+      use Phoenix.View,
+        root: "lib/mazee_web/templates",
+        namespace: MazeeWeb
+    end
+  end
+
+
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,

@@ -68,7 +68,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="font-serif text-2xl">Welcome Back</CardTitle>
-        <CardDescription>Sign in to your Orthodox Social account</CardDescription>
+        <CardDescription>Sign in to your Mazee account</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

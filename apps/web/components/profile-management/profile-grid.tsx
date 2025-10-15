@@ -41,7 +41,7 @@ export function ProfileGrid({ searchQuery }: ProfileGridProps) {
     )
   }
 
-  const users: UserWithProfile[] = usersData?.items || []
+  const users: UserWithProfile[] = usersData?.data || []
   const filteredUsers = searchQuery
     ? users.filter(
         (user: UserWithProfile) =>

@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { QueryProvider } from "@/lib/providers/query-provider"
 import { AuthProvider } from "@/lib/providers/auth-provider"
 import { Toaster } from "@/components/ui/toaster"
+// import { cn } from "@/lib/utils"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,9 +36,8 @@ const sourceSansPro = Source_Sans_Pro({
 })
 
 export const metadata: Metadata = {
-  title: "User Management - Orthodox Social",
-  description: "Manage user accounts and profiles for Orthodox Social platform",
-  generator: "v0.app",
+  title: "User Management - Mazee",
+  description: "Manage user accounts and profiles for Mazee platform",
 }
 
 export default function RootLayout({
@@ -46,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`font-sans ${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${sourceSansPro.variable}`}
       >

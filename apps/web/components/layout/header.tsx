@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/providers/auth-provider"
 import { hasPermission } from "@/lib/utils/role-utils"
 import { UserMenu } from "@/components/auth/user-menu"
+import Image from "next/image"
 
 export function Header() {
   const { user } = useAuth()
@@ -16,11 +17,11 @@ export function Header() {
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">OS</span>
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex items-center justify-center">
+              <Image src="/logo.png" alt="Mazee logo" width={65} height={65} className="h-14 w-14 sm:h-10 sm:w-10 md:h-12 md:w-12" priority />
             </div>
-            <span className="font-serif font-bold text-xl">Orthodox Social</span>
+            <span className="font-serif font-bold text-xl">Mazee</span>
           </Link>
 
           {user && (

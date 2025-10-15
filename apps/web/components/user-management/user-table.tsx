@@ -70,7 +70,7 @@ export function UserTable({ searchQuery }: UserTableProps) {
     )
   }
 
-  const users: UserWithProfile[] = (usersData?.items as UserWithProfile[]) || []
+  const users: UserWithProfile[] = (usersData?.data as UserWithProfile[]) || []
   const filteredUsers: UserWithProfile[] = searchQuery
     ? users.filter((user: UserWithProfile) =>
           user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||

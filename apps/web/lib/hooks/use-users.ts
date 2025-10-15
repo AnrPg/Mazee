@@ -23,12 +23,12 @@ export function useUsers(params?: { limit?: number; after?: string }) {
       if (response.error) {
         throw new Error(response.error)
       }
-      // Normalize to { items, next? }, in case backend returns either [] or { items: [] }
-      const data = response.data as any
-      if (!data) return { items: [] }
-      if (Array.isArray(data)) return { items: data }
-      if (Array.isArray(data.items)) return { items: data.items, next: data.next }
-      return { items: [] }
+      // Normalize to { data, next? }, in case backend returns either [] or { data: [] }
+      const payload = response.data as any
+      if (!payload) return { data: [] }
+      if (Array.isArray(payload)) return { data: payload }
+      if (Array.isArray(payload.data)) return { data: payload.data, next: payload.next }
+      return { data: [] }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   })

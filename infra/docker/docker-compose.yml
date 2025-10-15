@@ -83,17 +83,21 @@ services:
       MONGO_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017
       MONGO_DB: ${MONGO_DB:-mazee}
     depends_on:
-      - postgres
-      - meilisearch
-      - mongo
+      postgres:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
     ports:
       - "4000:4000"
     networks: [mazee_net]
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4000/"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:4000/v1/health >/dev/null || exit 1"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 10
+      # start_period: 50s
 
   # === NEW: Next.js Web (apps/web) ===
   web:
@@ -105,9 +109,9 @@ services:
     env_file: .env
     environment:
       # Public for browser calls:
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000/v1}
       # Internal (server-side) calls from Next server to Phoenix in the compose network:
-      INTERNAL_API_BASE_URL: http://api:4000
+      INTERNAL_API_BASE_URL: http://api:4000/v1
       NODE_ENV: ${NODE_ENV:-development}
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
@@ -121,10 +125,11 @@ services:
       - "3000:3000"
     networks: [mazee_net]
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/health >/dev/null || exit 1"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 10
+      # start_period: 50s
     # ⬇️ add/keep your environment if you had any
     # env_file: .env
     # ⬇️ bind mount the repo (dev) and persist node_modules

@@ -19,6 +19,7 @@ chatId:
 limit:
   in: query
   name: limit
+  description: Maximum number of items to return (max 100)
   schema:
     type: integer
     minimum: 1
@@ -30,4 +31,4 @@ after:
   name: after
   schema:
     type: string
-    description: Cursor for pagination
+    description: Return results after the given cursor (for pagination)

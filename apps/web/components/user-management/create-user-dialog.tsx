@@ -84,7 +84,7 @@ export function CreateUserDialog() {
         <DialogHeader>
           <DialogTitle className="font-serif">Create New User</DialogTitle>
           <DialogDescription>
-            Add a new user to the Orthodox Social platform. They will receive an email to verify their account.
+            Add a new user to the Mazee platform. They will receive an email to verify their account.
           </DialogDescription>
         </DialogHeader>
 

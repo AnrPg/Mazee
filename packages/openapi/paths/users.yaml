@@ -7,6 +7,10 @@ users:
     responses:
       "200": { description: Users, content: { application/json: { schema: { $ref: "../components/schemas/user/UserPage.yaml" } } } }
       "403": { $ref: "../components/responses.yaml#/Forbidden" }
+    x-pagination:
+      description: |
+        `limit` is maximum number of users to return (clamped to 100).  
+        `after` is the user ID after which to fetch.
   post:
     summary: Create user (admin/import)
     tags: [Users]

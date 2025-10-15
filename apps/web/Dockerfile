@@ -4,6 +4,7 @@ WORKDIR /app
 
 # 1) Enable Corepack so Yarn 4 is available
 RUN corepack enable
+RUN apk add --no-cache curl
 
 # 2) Copy Yarn + workspace manifests first (cache-friendly)
 #    Include .yarn so plugins/releases/install-state.gz are available
