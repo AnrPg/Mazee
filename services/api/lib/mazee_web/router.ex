@@ -35,7 +35,6 @@ defmodule MazeeWeb.Router do
         get "/me", AuthController, :me
       end
 
-      # get "/dashboard", UsersController, :index
       # Admin Users CRUD (controller enforces admin role)
       get "/users", UsersController, :index
       get "/users/:userId", UsersController, :show

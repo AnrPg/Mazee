@@ -3,6 +3,7 @@ name: ${COMPOSE_PROJECT_NAME:-mazee}
 services:
   postgres:
     image: postgres:16-alpine
+    command: ["postgres", "-c", "listen_addresses=*", "-c", "max_connections=200"]
     container_name: ${COMPOSE_PROJECT_NAME:-mazee}-postgres
     restart: unless-stopped
     env_file: .env
@@ -10,14 +11,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST_AUTH_METHOD: md5
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 60s
       timeout: 3s
       retries: 20
     networks: [mazee_net]
@@ -39,7 +41,7 @@ services:
       - meili_data:/meili_data
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:7700/health | grep -q '\"status\":\"available\"' || exit 1"]
-      interval: 5s
+      interval: 60s
       timeout: 3s
       retries: 20
     networks: [mazee_net]
@@ -60,7 +62,7 @@ services:
     healthcheck:
       # waits for TCP port and simple mongo handshake
       test: ["CMD", "bash", "-lc", "mongosh --quiet --eval 'db.runCommand({ ping: 1 })' || exit 1"]
-      interval: 5s
+      interval: 60s
       timeout: 5s
       retries: 30
     networks: [mazee_net]
@@ -94,7 +96,7 @@ services:
     networks: [mazee_net]
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:4000/v1/health >/dev/null || exit 1"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 10
       # start_period: 50s
@@ -126,7 +128,7 @@ services:
     networks: [mazee_net]
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/health >/dev/null || exit 1"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 10
       # start_period: 50s
