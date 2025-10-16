@@ -1,12 +1,13 @@
 defmodule MazeeWeb.UsersController do
   @moduledoc """
-  Admin-only endpoints for managing users.
+  Admin-only and public endpoints for managing users.
 
   Routes:
     GET    /v1/users
     GET    /v1/users/:userId
     PATCH  /v1/users/:userId
     DELETE /v1/users/:userId
+    POST   /v1/users        (public create)
   """
   use MazeeWeb, :controller
 
@@ -107,6 +108,37 @@ defmodule MazeeWeb.UsersController do
         |> json(%{error: %{code: "forbidden", message: "Admin role required"}})
         |> halt()
     end
+  end
+
+  # =========== POST /v1/users (public) ===========
+  # Body: { "email": "...", "handle": "...", "password": "..." }
+  def create(conn, params) do
+    attrs = %{
+      email:   Map.get(params, "email"),
+      handle:  Map.get(params, "handle"),
+      password: Map.get(params, "password")
+    }
+
+    case Accounts.register_user(attrs) do
+      {:ok, user} ->
+        conn
+        |> put_status(:created)
+        |> json(%{data: user_public_view(user)})
+
+      {:error, cs} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: %{code: "validation_error", details: cs.errors}})
+    end
+  end
+
+  defp user_public_view(u) do
+    %{
+      id: u.id,
+      email: u.email,
+      handle: u.handle,
+      createdAt: u.created_at
+    }
   end
 
   defp user_admin_view(u) do

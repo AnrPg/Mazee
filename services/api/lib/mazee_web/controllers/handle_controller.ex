@@ -45,6 +45,7 @@ defmodule MazeeWeb.HandleController do
     end
   end
 
+  # TODO: what is this???
   # keep this in sync with your frontend paths & brand words
   @reserved ~w[
     admin root system support moderator mod staff team api www web app apps

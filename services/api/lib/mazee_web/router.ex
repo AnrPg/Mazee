@@ -25,6 +25,8 @@ defmodule MazeeWeb.Router do
       # (Later: POST /refresh, POST /logout if you add them)
     end
 
+    post "/users", UsersController, :create
+
     # Protected endpoints (JWT required)
     scope "/" do
       pipe_through [:auth]
@@ -33,6 +35,7 @@ defmodule MazeeWeb.Router do
         get "/me", AuthController, :me
       end
 
+      # get "/dashboard", UsersController, :index
       # Admin Users CRUD (controller enforces admin role)
       get "/users", UsersController, :index
       get "/users/:userId", UsersController, :show
