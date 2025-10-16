@@ -46,7 +46,7 @@ export default function Page() {
       queryFn: async () => {
         const token =
           typeof window !== "undefined" ? localStorage.getItem("auth_token") || "" : ""
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/auth/me`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,

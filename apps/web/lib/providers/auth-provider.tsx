@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // --- helper: fetch current user (guarantee roles come from API) ---
   const fetchMe = async (token: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/auth/me`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
