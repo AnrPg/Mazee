@@ -112,7 +112,7 @@ class ApiClient {
   }
 
   async checkHandleAvailability(handle: string): Promise<ApiResponse<{ available: boolean; suggestion?: string }>> {
-    return this.request(`/profiles/handle-available?handle=${encodeURIComponent(handle)}`)
+    return this.request(`/handles/check?handle=${encodeURIComponent(handle)}`)
   }
 
   // ===== Auth (expects /v1/auth/... thanks to base) =====
@@ -143,7 +143,7 @@ export async function api(path: string, options: RequestInit = {}) {
   headers.set("Content-Type", "application/json")
   if (token) headers.set("Authorization", `Bearer ${token}`)
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, { //TODO: check if a '/' is needed between NEXT_PUBLIC_API_URL and path
     ...options,
     headers,
   })
