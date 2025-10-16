@@ -1,14 +1,34 @@
 import Config
 
-# --- Postgres ---
-# Expect DATABASE_URL like:
-#  postgres://USER:PASS@HOST:5432/DBNAME
-db_user = System.get_env("POSTGRES_USER", "mazee")
-db_pass = System.get_env("POSTGRES_PASSWORD", "mazee_dev_pw")
-# set to service name if inside Docker network
-db_host = System.get_env("POSTGRES_HOST", "postgres")
-db_port = System.get_env("POSTGRES_PORT", "5432")
-db_name = System.get_env("POSTGRES_DB", "mazee_dev")
+# # --- Postgres ---
+# # Expect DATABASE_URL like:
+# #  postgres://USER:PASS@HOST:5432/DBNAME
+# db_user = System.get_env("POSTGRES_USER", "mazee")
+# db_pass = System.get_env("POSTGRES_PASSWORD", "mazee_dev_pw")
+# # set to service name if inside Docker network
+# db_host = System.get_env("POSTGRES_HOST", "postgres")
+# db_port = System.get_env("POSTGRES_PORT", "5432")
+# db_name = System.get_env("POSTGRES_DB", "mazee_dev")
+
+db_user = System.get_env("DATABASE_USER") ||
+          System.get_env("POSTGRES_USER") ||
+          System.get_env("DB_USER") || "mazee"
+
+db_pass = System.get_env("DATABASE_PASSWORD") ||
+          System.get_env("POSTGRES_PASSWORD") ||
+          System.get_env("DB_PASS") || "mazee_dev_pw"
+
+db_host = System.get_env("DATABASE_HOST") ||
+          System.get_env("POSTGRES_HOST") ||
+          System.get_env("DB_HOST") || "postgres"
+
+db_port = System.get_env("DATABASE_PORT") ||
+          System.get_env("POSTGRES_PORT") ||
+          System.get_env("DB_PORT") || "5432"
+
+db_name = System.get_env("DATABASE_NAME") ||
+          System.get_env("POSTGRES_DB") ||
+          System.get_env("DB_NAME") || "mazee_dev"
 
 database_url =
   System.get_env("DATABASE_URL") ||
@@ -24,8 +44,7 @@ config :mazee, Mazee.Repo,
   queue_target: 5_000,
   # IMPORTANT: our tables live under the "app" schema by default
   default_options: [search_path: "app,public"],
-  socket_options: [:inet],
-  ssl: false
+  socket_options: [:inet]
 
 # --- Meilisearch ---
 config :mazee, :meili,
