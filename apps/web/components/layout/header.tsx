@@ -56,7 +56,7 @@ export function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           {user ? (
             <UserMenu />
           ) : (
@@ -64,7 +64,7 @@ export function Header() {
               <Button>Sign In</Button>
             </Link>
           )}
-        </div>
+        </div> */}
       </div>
     </header>
   )

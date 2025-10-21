@@ -40,11 +40,7 @@ export const metadata: Metadata = {
   description: "Manage user accounts and profiles for Mazee platform",
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({children}: Readonly<{children: React.ReactNode}>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body
